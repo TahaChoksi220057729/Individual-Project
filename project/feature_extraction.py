@@ -1,190 +1,100 @@
-from text_processor import TextProcessor
-from keyword_analysis import KeywordAnalysis
 
-# class FeatureExtractor:
-#     """Extract features from speech text for analysis and evaluation."""
-    
-#     def __init__(self, nlp, text_processor=None):
-#         """
-#         Initialize the feature extractor.
-        
-#         Args:
-#             nlp: Loaded SpaCy model
-#             text_processor: Optional TextProcessor instance
-#         """
-#         self.nlp = nlp
-#         self.text_processor = text_processor or TextProcessor(nlp)
-#         self.entity_analyzer = KeywordAnalysis(nlp)
-        
-#     def extract_features(self, text):
-#         """
-#         Extract features from speech text.
-        
-#         Args:
-#             text: Speech text
-            
-#         Returns:
-#             Dictionary of extracted features
-#         """
-#         processed_text = self.text_processor.preprocess_text(text)
-#         doc = self.nlp(text)
-        
-#         # Basic statistics
-#         word_count = len(text.split())
-#         sentence_count = len(list(doc.sents))
-        
-#         # Calculate average word and sentence length
-#         avg_word_length = sum(len(word) for word in text.split()) / max(1, word_count)
-#         avg_sentence_length = word_count / max(1, sentence_count)
-        
-#         # Count number of complex words (3+ syllables as a simple heuristic)
-#         complex_words = sum(1 for word in text.split() if len(word) > 8)
-        
-#         # Analyse entities
-#         entity_analysis = self.entity_analyzer.analyse(text)
-        
-#         # Analyse coherence between sentences
-#         coherence = self.text_processor.analyse_coherence(doc)
-        
-#         # Return features as a dictionary
-#         features = {
-#             'processed_text': processed_text,
-#             'word_count': word_count,
-#             'sentence_count': sentence_count,
-#             'avg_word_length': avg_word_length,
-#             'avg_sentence_length': avg_sentence_length,
-#             'complex_word_ratio': complex_words / max(1, word_count),
-#             'entities': entity_analysis,
-#             'coherence': coherence
-#         }
-        
-#         return features
-    
-# def flatten_features(self, features):
-#     """
-#     Create a flattened version of features for model training/prediction.
-    
-#     Args:
-#         features: Dictionary of extracted features
-        
-#     Returns:
-#         Dictionary with flattened feature structure
-#     """
-#     # Get all entity categories
-#     entities = features['entities']['categories']
-    
-#     # Base flattened features
-#     flat_features = {
-#         'processed_text': features['processed_text'],
-#         'word_count': features['word_count'],
-#         'sentence_count': features['sentence_count'],
-#         'avg_word_length': features['avg_word_length'],
-#         'avg_sentence_length': features['avg_sentence_length'],
-#         'complex_word_ratio': features['complex_word_ratio'],
-#         'avg_coherence': features['coherence']['avg_similarity'],
-#         'weak_transition_count': len(features['coherence']['weak_transitions'])
-#     }
-    
-#     # Add counts for each entity category
-#     for category in entities:
-#         category_key = f"{category.lower()}_count"
-#         flat_features[category_key] = len(entities.get(category, []))
-    
-#     # Add total entity count
-#     flat_features['total_entity_count'] = sum(len(entities.get(cat, [])) for cat in entities)
-    
-#     return flat_features
+
+from typing import Dict, List, Any
+from text_processor import text_processor
+from keyword_analysis import keyword_analyzer
 
 class FeatureExtractor:
-    """Extract features from speech text for analysis and evaluation."""
+    """
+    Class responsible for extracting and combining features from speech text.
     
-    def __init__(self, nlp, text_processor=None):
+    This class combines text statistics, entity analysis, and coherence metrics
+    to create a comprehensive feature set for speech evaluation.
+    """
+    
+    def __init__(self):
+        """Initialise the feature extractor."""
+        pass
+    
+    def extract_features(self, text: str, topic: str = None) -> Dict[str, Any]:
         """
-        Initialize the feature extractor.
+        Extract all features from a speech text.
         
         Args:
-            nlp: Loaded SpaCy model
-            text_processor: Optional TextProcessor instance
-        """
-        self.nlp = nlp
-        self.text_processor = text_processor or TextProcessor(nlp)
-        self.entity_analyzer = KeywordAnalysis(nlp)
-        
-    def extract_features(self, text):
-        """
-        Extract features from speech text.
-        
-        Args:
-            text: Speech text
+            text (str): The speech text to analyse
+            topic (str, optional): The topic of the speech
             
         Returns:
-            Dictionary of extracted features
+            Dict[str, Any]: A dictionary of extracted features
         """
-        processed_text = self.text_processor.preprocess_text(text)
-        doc = self.nlp(text)
+        if not text or not text.strip():
+            raise ValueError("Speech text cannot be empty")
         
-        # Basic statistics
-        word_count = len(text.split())
-        sentence_count = len(list(doc.sents))
+        # Preprocess the text
+        preprocessed_text = text_processor.preprocess_text(text)
         
-        # Calculate average word and sentence length
-        avg_word_length = sum(len(word) for word in text.split()) / max(1, word_count)
-        avg_sentence_length = word_count / max(1, sentence_count)
+        # Compute text statistics
+        text_stats = text_processor.compute_text_statistics(text)
         
-        # Count number of complex words (3+ syllables as a simple heuristic)
-        complex_words = sum(1 for word in text.split() if len(word) > 8)
+        # Analyse coherence
+        coherence_metrics = text_processor.analyze_coherence(text)
         
-        # Analyze entities
-        entity_analysis = self.entity_analyzer.analyse(text)
+        # Extract entities and keywords
+        entity_analysis = keyword_analyzer.analyze(text)
         
-        # Analyze coherence between sentences
-        coherence = self.text_processor.analyse_coherence(doc)
+        # Count entities by category
+        entity_counts = keyword_analyzer.get_entity_counts(entity_analysis)
         
-        # Return features as a dictionary
+        # Combine all features
         features = {
-            'processed_text': processed_text,
-            'word_count': word_count,
-            'sentence_count': sentence_count,
-            'avg_word_length': avg_word_length,
-            'avg_sentence_length': avg_sentence_length,
-            'complex_word_ratio': complex_words / max(1, word_count),
-            'entities': entity_analysis,
-            'coherence': coherence
+            'text_statistics': text_stats,
+            'coherence_metrics': coherence_metrics,
+            'entity_analysis': entity_analysis,
+            'entity_counts': entity_counts
         }
+        
+        # Add topic if available
+        if topic:
+            features['topic'] = topic
         
         return features
     
-    def flatten_features(self, features):
+    def get_flat_features(self, features: Dict[str, Any]) -> Dict[str, float]:
         """
-        Create a flattened version of features for model training/prediction.
+        Convert structured features to a flat dictionary suitable for ML models.
         
         Args:
-            features: Dictionary of extracted features
+            features (Dict[str, Any]): The structured features from extract_features
             
         Returns:
-            Dictionary with flattened feature structure
+            Dict[str, float]: A flattened dictionary of features
         """
-        # Get all entity categories
-        entities = features['entities']['categories']
+        flat_features = {}
         
-        # Base flattened features
-        flat_features = {
-            'processed_text': features['processed_text'],
-            'word_count': features['word_count'],
-            'sentence_count': features['sentence_count'],
-            'avg_word_length': features['avg_word_length'],
-            'avg_sentence_length': features['avg_sentence_length'],
-            'complex_word_ratio': features['complex_word_ratio'],
-            'avg_coherence': features['coherence']['avg_similarity'],
-            'weak_transition_count': len(features['coherence']['weak_transitions'])
-        }
+        # Add text statistics
+        for key, value in features['text_statistics'].items():
+            flat_features[f'stat_{key}'] = value
         
-        # Add counts for each entity category
-        for category in entities:
-            category_key = f"{category.lower()}_count"
-            flat_features[category_key] = len(entities.get(category, []))
+        # Add coherence metrics
+        for key, value in features['coherence_metrics'].items():
+            flat_features[f'coherence_{key}'] = value
         
-        # Add total entity count
-        flat_features['total_entity_count'] = sum(len(entities.get(cat, [])) for cat in entities)
+        # Add entity counts
+        for key, value in features['entity_counts'].items():
+            flat_features[f'entity_{key}'] = value
+        
+        # Add entity density (entities per 100 words)
+        if 'word_count' in features['text_statistics'] and features['text_statistics']['word_count'] > 0:
+            word_count = features['text_statistics']['word_count']
+            for key, value in features['entity_counts'].items():
+                if key != 'total':  # Skip total to avoid redundancy
+                    flat_features[f'entity_density_{key}'] = (value / word_count) * 100
+        
+        # Add topic if available (as categorical feature for ML)
+        if 'topic' in features:
+            flat_features['topic'] = features['topic']
         
         return flat_features
+
+# Create a global instance for shared access
+feature_extractor = FeatureExtractor() 

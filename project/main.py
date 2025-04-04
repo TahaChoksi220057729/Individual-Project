@@ -45,7 +45,7 @@ def example_usage():
                        """,
                        """Honorable Chair, climate change is a global issue. Climate change is causing many problems. The United States is working on climate change. Climate change must be stopped. We need action. Countries need to help fight climate change. Climate change is affecting the world. We must do something. In conclusion, climate change is a big problem. The United States is trying to help.
                        """
-                       ]
+                       ]    
     
     # Sample scores (1-10 scale)
     sample_scores = [10, 10, 9, 9, 8, 8, 7, 7, 6, 5, 4, 3, 2]

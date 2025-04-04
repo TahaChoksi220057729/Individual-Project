@@ -1,172 +1,247 @@
+import os
 import numpy as np
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
+from typing import List, Dict, Optional, Any, Tuple
 from sklearn.ensemble import RandomForestRegressor
-from nltk.corpus import stopwords
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
 import joblib
-import spacy
+from feature_extraction import feature_extractor
 
-from text_processor import TextProcessor
-from feature_extraction import FeatureExtractor
-from feedback_generation import FeedbackGenerator
-
-class MUNSpeechEvaluator:
-    """Main class for evaluating and providing feedback on MUN speeches."""
+class SpeechEvaluationModel:
+    """
+    Class responsible for the machine learning aspects of speech evaluation.
+    
+    This class handles model training, prediction, and persistence for
+    evaluating MUN speeches.
+    """
     
     def __init__(self):
-        """Initialise the MUN speech evaluator."""
-        self.nlp = spacy.load("en_core_web_md")
+        """Initialise the model and vectoriser."""
         self.model = None
-        self.vectorizer = TfidfVectorizer(
-            max_features=5000, 
-            stop_words=stopwords.words('english'),
+        self.vectoriser = TfidfVectorizer(
+            max_features=5000,
+            stop_words='english',
             ngram_range=(1, 3)
         )
-        self.text_processor = TextProcessor(self.nlp)
-        self.feature_extractor = FeatureExtractor(self.nlp, self.text_processor)
-        self.feedback_generator = FeedbackGenerator()
-        
-    def train(self, speeches, scores):
+        self.feature_names = None
+        self.trained = False
+        self.topic_encoder = None
+    
+    def train(self, speeches: List[str], scores: List[float], topics: List[str] = None) -> None:
         """
-        Train the model on labeled MUN speeches.
+        Train the evaluation model using speech texts and scores.
         
         Args:
-            speeches: List of speech texts
-            scores: List of corresponding scores
+            speeches (List[str]): List of speech texts
+            scores (List[float]): List of scores (1-10)
+            topics (List[str], optional): List of speech topics
             
-        Returns:
-            Self for method chaining
+        Raises:
+            ValueError: If input data is invalid
         """
-        # Extract features for all speeches
+        if not speeches or not scores:
+            raise ValueError("Speeches and scores cannot be empty")
+            
+        if len(speeches) != len(scores):
+            raise ValueError("Number of speeches must match number of scores")
+            
+        if topics and len(topics) != len(speeches):
+            raise ValueError("Number of topics must match number of speeches")
+        
+        # Extract features from all speeches
         features_list = []
-        for speech in speeches:
-            features = self.feature_extractor.extract_features(speech)
-            flat_features = self.feature_extractor.flatten_features(features)
-            features_list.append(flat_features)
+        text_list = []
+        for i, speech in enumerate(speeches):
+            try:
+                # Extract features
+                topic = topics[i] if topics else None
+                extracted_features = feature_extractor.extract_features(speech, topic)
+                flat_features = feature_extractor.get_flat_features(extracted_features)
+                features_list.append(flat_features)
+                
+                # Get processed text for TF-IDF
+                text_list.append(speech)
+            except Exception as e:
+                print(f"Error processing speech {i}: {e}")
+                raise ValueError(f"Error processing speech {i}: {e}")
         
         # Convert to DataFrame
         features_df = pd.DataFrame(features_list)
         
-        # Extract text for vectorisation
-        X_text = features_df['processed_text']
+        # Process text features (TF-IDF)
+        text_features = self.vectoriser.fit_transform(text_list)
         
-        # Convert text to TF-IDF features
-        X_tfidf = self.vectorizer.fit_transform(X_text)
+        # Check if we have topic information
+        has_topics = topics is not None and 'topic' in features_df.columns
         
-        # Get numerical features
-        numerical_features = features_df.drop('processed_text', axis=1)
+        # Prepare features
+        numeric_features = features_df.select_dtypes(include=['number']).columns.tolist()
         
-        # Combine TF-IDF and numerical features
-        X_tfidf_array = X_tfidf.toarray()
-        X_combined = np.hstack((X_tfidf_array, numerical_features.values))
+        if has_topics:
+            # One-hot encode topics as categorical features
+            topic_values = features_df['topic'].values.reshape(-1, 1)
+            self.topic_encoder = OneHotEncoder(sparse=False, handle_unknown='ignore')
+            topic_encoded = self.topic_encoder.fit_transform(topic_values)
+            
+            # Combine numeric and text features with topics
+            X = np.hstack([
+                features_df[numeric_features].values,
+                text_features.toarray(),
+                topic_encoded
+            ])
+        else:
+            # Combine numeric and text features without topics
+            X = np.hstack([
+                features_df[numeric_features].values,
+                text_features.toarray()
+            ])
         
-        # Create and train model
+        # Create target array
+        y = np.array(scores)
+        
+        # Train model
         self.model = RandomForestRegressor(
             n_estimators=100,
-            max_depth=10,
+            max_depth=None,
+            min_samples_split=2,
+            min_samples_leaf=1,
             random_state=42
         )
+        self.model.fit(X, y)
         
-        self.model.fit(X_combined, scores)
-        
-        # Update feedback generator with the model
-        self.feedback_generator.model = self.model
-        
-        return self
+        # Save feature names for prediction
+        self.feature_names = numeric_features
+        self.trained = True
     
-    def evaluate(self, speech):
+    def evaluate(self, speech: str, topic: str = None) -> float:
         """
-        Evaluate a single MUN speech.
+        Evaluate a speech and return a score.
         
         Args:
-            speech: Text of the speech to evaluate
+            speech (str): The speech text to evaluate
+            topic (str, optional): The speech topic
             
         Returns:
-            Predicted score for the speech
-        """
-        # Extract features
-        features = self.feature_extractor.extract_features(speech)
-        
-        # Create flattened features
-        flat_features = self.feature_extractor.flatten_features(features)
-        
-        # Convert to DataFrame with single row
-        features_df = pd.DataFrame([flat_features])
-        
-        # Process text
-        X_text = features_df['processed_text']
-        
-        # Convert text to TF-IDF features
-        X_tfidf = self.vectorizer.transform(X_text)
-        
-        # Get numerical features
-        numerical_features = features_df.drop('processed_text', axis=1)
-        
-        # Combine TF-IDF and numerical features
-        X_tfidf_array = X_tfidf.toarray()
-        X_combined = np.hstack((X_tfidf_array, numerical_features.values))
-        
-        # Make prediction
-        if self.model is None:
-            raise ValueError("Model has not been trained yet!")
-        
-        score = self.model.predict(X_combined)[0]
-        
-        return score
-    
-    def generate_feedback(self, speech):
-        """
-        Generate detailed feedback for a MUN speech.
-        
-        Args:
-            speech: Text of the speech to evaluate
+            float: Evaluation score between 1 and 10
             
-        Returns:
-            Dictionary with detailed feedback
+        Raises:
+            ValueError: If the model is not trained or there's an error
         """
-        # Extract features for analysis
-        features = self.feature_extractor.extract_features(speech)
+        if not self.trained or self.model is None:
+            raise ValueError("Model has not been trained yet")
         
-        # Calculate score if model is available
-        score = None
-        if self.model is not None:
-            score = self.evaluate(speech)
+        try:
+            # Extract features
+            extracted_features = feature_extractor.extract_features(speech, topic)
+            flat_features = feature_extractor.get_flat_features(extracted_features)
             
-        # Generate feedback
-        return self.feedback_generator.generate_feedback(features, score)
+            # Convert to DataFrame (only numeric features)
+            features_df = pd.DataFrame([flat_features])
+            numeric_features = features_df.select_dtypes(include=['number']).columns.tolist()
+            
+            # Make sure we have all the required features
+            missing_features = set(self.feature_names) - set(numeric_features)
+            if missing_features:
+                # Add missing features with zero values
+                for feature in missing_features:
+                    features_df[feature] = 0
+            
+            # Process text feature
+            text_feature = self.vectoriser.transform([speech])
+            
+            # Check if we need to handle topic
+            if self.topic_encoder is not None and topic:
+                topic_value = np.array([[topic]])
+                try:
+                    topic_encoded = self.topic_encoder.transform(topic_value)
+                    
+                    # Combine features
+                    X = np.hstack([
+                        features_df[self.feature_names].values,
+                        text_feature.toarray(),
+                        topic_encoded
+                    ])
+                except (ValueError, TypeError):
+                    # Topic wasn't in training data, proceed without topic
+                    X = np.hstack([
+                        features_df[self.feature_names].values,
+                        text_feature.toarray(),
+                        np.zeros((1, self.topic_encoder.get_feature_names_out().shape[0]))
+                    ])
+            else:
+                # Combine features without topic
+                X = np.hstack([
+                    features_df[self.feature_names].values,
+                    text_feature.toarray()
+                ])
+            
+            # Predict score
+            score = self.model.predict(X)[0]
+            
+            # Clip score to range 1-10
+            return max(1.0, min(10.0, float(score)))
+        except Exception as e:
+            raise ValueError(f"Error evaluating speech: {str(e)}")
     
-    def save_model(self, filepath):
+    def save_model(self, file_path: str) -> bool:
         """
         Save the trained model to a file.
         
         Args:
-            filepath: Path to save the model
+            file_path (str): Path to save the model
+            
+        Returns:
+            bool: True if successful, False otherwise
         """
-        if self.model is None:
-            raise ValueError("No trained model to save!")
+        if not self.trained or self.model is None:
+            return False
         
-        model_data = {
-            'model': self.model,
-            'vectorizer': self.vectorizer
-        }
-        
-        joblib.dump(model_data, filepath)
+        try:
+            # Create directory if it doesn't exist
+            os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.', exist_ok=True)
+            
+            # Save model and necessary components
+            joblib.dump({
+                'model': self.model,
+                'vectoriser': self.vectoriser,
+                'feature_names': self.feature_names,
+                'topic_encoder': self.topic_encoder
+            }, file_path)
+            return True
+        except Exception as e:
+            print(f"Error saving model: {str(e)}")
+            return False
     
-    def load_model(self, filepath):
+    def load_model(self, file_path: str) -> bool:
         """
         Load a trained model from a file.
         
         Args:
-            filepath: Path to the saved model
+            file_path (str): Path to the model file
             
         Returns:
-            Self for method chaining
+            bool: True if successful, False otherwise
         """
-        model_data = joblib.load(filepath)
-        self.model = model_data['model']
-        self.vectorizer = model_data['vectorizer']
-        
-        # Update feedback generator with the model
-        self.feedback_generator.model = self.model
-        
-        return self
+        try:
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"Model file not found: {file_path}")
+                
+            # Load model and components
+            saved_data = joblib.load(file_path)
+            
+            self.model = saved_data['model']
+            self.vectoriser = saved_data['vectoriser']
+            self.feature_names = saved_data['feature_names']
+            self.topic_encoder = saved_data.get('topic_encoder')
+            self.trained = True
+            
+            return True
+        except Exception as e:
+            print(f"Error loading model: {str(e)}")
+            return False
+
+# Create a global instance for shared access
+evaluation_model = SpeechEvaluationModel() 
