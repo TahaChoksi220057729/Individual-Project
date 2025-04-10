@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUN Speech Evaluator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            background-color: #f8f9fa;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .card {
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .feedback-section {
+            margin-top: 2rem;
+            display: none;
+        }
+        .score-display {
+            font-size: 4rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .suggestion-item {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background-color: #f1f8ff;
+            border-left: 4px solid #0d6efd;
+            border-radius: 0.25rem;
+        }
+        .spinner-border {
+            margin-right: 0.5rem;
+        }
+        .topic-badge {
+            font-size: 1rem;
+            background-color: #e7f5ff;
+            color: #0d6efd;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        .feedback-box {
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+        }
+        .feedback-good {
+            border-left-color: #28a745;
+        }
+        .feedback-warning {
+            border-left-color: #ffc107;
+        }
+        .feedback-poor {
+            border-left-color: #dc3545;
+        }
+        .entity-list li {
+            list-style-type: none;
+            padding: 0.25rem 0;
+        }
+        .entity-list li:not(:last-child) {
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .entity-section h6 {
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MUN Speech Evaluator</h1>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Evaluate Your Speech</h5>
+                        <form id="speech-form">
+                            <div class="mb-3">
+                                <label for="topic-select" class="form-label">Topic</label>
+                                <div class="input-group mb-3">
+                                    <select class="form-select" id="topic-select" name="topic">
+                                        <option value="">Select topic...</option>
+                                        {% for topic in topics %}
+                                        <option value="{{ topic }}">{{ topic }}</option>
+                                        {% endfor %}
+                                        <option value="custom">Custom Topic</option>
+                                    </select>
+                                    <input type="text" class="form-control" id="custom-topic" placeholder="Enter custom topic" style="display: none;">
+                                </div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="safe-mode-checkbox" name="safe_mode">
+                                <label class="form-check-label" for="safe-mode-checkbox">Safe mode</label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="speech-text" class="form-label">Speech Text</label>
+                                <textarea class="form-control" id="speech-text" name="speech" rows="10" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="evaluate-btn">
+                                <span class="spinner-border spinner-border-sm d-none" id="loading-spinner" role="status" aria-hidden="true"></span>
+                                Evaluate
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="feedback-section" id="feedback-section">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Score</h5>
+                            <div id="topic-display" class="topic-badge"></div>
+                            <div id="safe-mode-indicator" style="display: none; font-size: 0.8rem; color: #6c757d; margin-bottom: 0.5rem;">
+                                <i>Safe mode: Topic used for feedback only</i>
+                            </div>
+                            <div class="score-display" id="score-display">0.0</div>
+                            <div class="progress">
+                                <div class="progress-bar" id="score-progress" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Content Analysis</h5>
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td>Word Count</td>
+                                        <td id="word-count">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Recommended</td>
+                                        <td id="recommended-word-count">300-500 words</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Key Statistics</td>
+                                        <td id="content-statistics"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <p id="content-feedback" class="feedback-box"></p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Structure Analysis</h5>
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td>Sentences</td>
+                                        <td id="sentence-count">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Average Sentence Length</td>
+                                        <td id="avg-sentence-length">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Coherence Score</td>
+                                        <td id="coherence-score">0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <p id="structure-feedback" class="feedback-box"></p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Entities Referenced</h5>
+                            <div id="entities-container" class="p-2">
+                                <div class="row">
+                                    <div class="col-md-6 entity-section">
+                                        <h6>Countries</h6>
+                                        <ul id="countries-list" class="entity-list ps-0"></ul>
+                                    </div>
+                                    <div class="col-md-6 entity-section">
+                                        <h6>Organizations</h6>
+                                        <ul id="organizations-list" class="entity-list ps-0"></ul>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6 entity-section">
+                                        <h6>Policies</h6>
+                                        <ul id="policies-list" class="entity-list ps-0"></ul>
+                                    </div>
+                                    <div class="col-md-6 entity-section">
+                                        <h6>Key Concepts</h6>
+                                        <ul id="concepts-list" class="entity-list ps-0"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Language Analysis</h5>
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td>Average Word Length</td>
+                                        <td id="avg-word-length">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Complex Word Ratio</td>
+                                        <td id="complex-word-ratio">0%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card" id="suggestions-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Suggestions</h5>
+                            <div id="suggestions-container">
+                                <p>No suggestions available</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle custom topic selection
+        document.getElementById('topic-select').addEventListener('change', function() {
+            const customTopicInput = document.getElementById('custom-topic');
+            if (this.value === 'custom') {
+                customTopicInput.style.display = 'block';
+                customTopicInput.required = true;
+            } else {
+                customTopicInput.style.display = 'none';
+                customTopicInput.required = false;
+            }
+        });
+
+        document.getElementById('speech-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const speechText = document.getElementById('speech-text').value;
+            if (!speechText.trim()) {
+                alert('Please enter your speech text');
+                return;
+            }
+            
+            // Get the topic
+            let topic = document.getElementById('topic-select').value;
+            if (topic === 'custom') {
+                topic = document.getElementById('custom-topic').value;
+                if (!topic.trim()) {
+                    alert('Please enter a custom topic');
+                    return;
+                }
+            }
+            
+            // Check if safe mode is enabled
+            const safeMode = document.getElementById('safe-mode-checkbox').checked;
+            
+            // Show loading spinner
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const evaluateBtn = document.getElementById('evaluate-btn');
+            loadingSpinner.classList.remove('d-none');
+            evaluateBtn.disabled = true;
+            
+            // Send the request to the server
+            const requestData = {
+                speech: speechText,
+                topic: topic === '' ? null : topic,
+                safe_mode: safeMode
+            };
+            console.log('Sending data:', requestData);
+            
+            fetch('/api/evaluate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading spinner
+                loadingSpinner.classList.add('d-none');
+                evaluateBtn.disabled = false;
+                
+                if (data.error) {
+                    let errorMessage = data.error;
+                    if (errorMessage.includes('features')) {
+                        errorMessage = 'Try a different topic or enable safe mode';
+                    }
+                    alert('Error: ' + errorMessage);
+                    return;
+                }
+                
+                // Display feedback section
+                document.getElementById('feedback-section').style.display = 'block';
+                
+                // Update safe mode indicator
+                const safeModeIndicator = document.getElementById('safe-mode-indicator');
+                if (data.safe_mode_used || safeMode) {
+                    safeModeIndicator.style.display = 'block';
+                } else {
+                    safeModeIndicator.style.display = 'none';
+                }
+                
+                // Update topic display
+                const topicDisplay = document.getElementById('topic-display');
+                if (topic && topic !== '') {
+                    topicDisplay.textContent = topic;
+                    topicDisplay.style.display = 'inline-block';
+                } else {
+                    topicDisplay.style.display = 'none';
+                }
+                
+                // Update score
+                const score = data.score;
+                document.getElementById('score-display').textContent = score;
+                const scoreProgress = document.getElementById('score-progress');
+                scoreProgress.style.width = (score * 10) + '%';
+                scoreProgress.setAttribute('aria-valuenow', score);
+                
+                // Set progress bar color based on score
+                if (score < 5) {
+                    scoreProgress.className = 'progress-bar bg-danger';
+                } else if (score < 7) {
+                    scoreProgress.className = 'progress-bar bg-warning';
+                } else {
+                    scoreProgress.className = 'progress-bar bg-success';
+                }
+                
+                const feedback = data.feedback;
+                
+                // Extract metrics and statistics
+                const metrics = feedback.language_metrics;
+                const coherenceScore = metrics.coherence_score || 0;
+                const contentScore = score; // Using overall score for content quality
+                
+                // Update content analysis - only show feedback if score is below threshold
+                document.getElementById('word-count').textContent = metrics.word_count;
+                
+                // Create content statistics display
+                const contentStats = [
+                    `${countEntities(feedback.key_entities, 'Countries')} countries`, 
+                    `${countEntities(feedback.key_entities, 'Organisations')} organizations`, 
+                    `${countEntities(feedback.key_entities, 'Policies')} policies`,
+                    `${countEntities(feedback.key_entities, 'Quantities') || 0} quantities`
+                ].join(', ');
+                document.getElementById('content-statistics').textContent = contentStats;
+                
+                // Conditionally display content feedback
+                const contentFeedback = document.getElementById('content-feedback');
+                contentFeedback.textContent = feedback.content_analysis;
+                
+                // Apply appropriate feedback styling based on content score
+                if (contentScore >= 8) {
+                    contentFeedback.classList.add('feedback-good');
+                } else if (contentScore >= 6) {
+                    contentFeedback.classList.add('feedback-warning');
+                } else {
+                    contentFeedback.classList.add('feedback-poor');
+                }
+                
+                // Update structure analysis
+                document.getElementById('sentence-count').textContent = metrics.sentences;
+                document.getElementById('avg-sentence-length').textContent = metrics.average_sentence_length;
+                document.getElementById('coherence-score').textContent = coherenceScore + '/10';
+                
+                // Conditionally display structure feedback
+                const structureFeedback = document.getElementById('structure-feedback');
+                structureFeedback.textContent = feedback.structure;
+                
+                // Apply appropriate feedback styling based on coherence score
+                if (coherenceScore >= 7) {
+                    structureFeedback.classList.add('feedback-good');
+                } else if (coherenceScore >= 5) {
+                    structureFeedback.classList.add('feedback-warning');
+                } else {
+                    structureFeedback.classList.add('feedback-poor');
+                }
+                
+                // Update language analysis
+                document.getElementById('avg-word-length').textContent = metrics.average_word_length;
+                document.getElementById('complex-word-ratio').textContent = metrics.complex_word_ratio;
+                
+                // Update entities lists
+                populateEntityList('countries-list', feedback.key_entities.Countries || []);
+                populateEntityList('organizations-list', feedback.key_entities.Organisations || []);
+                populateEntityList('policies-list', feedback.key_entities.Policies || []);
+                populateEntityList('concepts-list', feedback.key_entities["Key Concepts"] || []);
+                
+                // Update suggestions
+                const suggestionsCard = document.getElementById('suggestions-card');
+                const suggestionsContainer = document.getElementById('suggestions-container');
+                suggestionsContainer.innerHTML = '';
+                
+                if (feedback.suggestions.length === 0) {
+                    suggestionsCard.style.display = 'none';
+                } else {
+                    suggestionsCard.style.display = 'block';
+                    feedback.suggestions.forEach(suggestion => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.className = 'suggestion-item';
+                        suggestionItem.textContent = suggestion;
+                        suggestionsContainer.appendChild(suggestionItem);
+                    });
+                }
+                
+                // Scroll to results
+                document.getElementById('feedback-section').scrollIntoView({ behavior: 'smooth' });
+            })
+            .catch(error => {
+                loadingSpinner.classList.add('d-none');
+                evaluateBtn.disabled = false;
+                
+                // Try fallback to /evaluate endpoint if needed
+                if (error.message.includes('Error 4')) {
+                    fetch('/evaluate', {
+                        method: 'POST',
+                        body: new FormData(document.getElementById('speech-form'))
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert('Error: ' + data.error);
+                        } else {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(() => {
+                        alert('Unable to evaluate speech. Please try again.');
+                    });
+                } else {
+                    alert('Error evaluating speech. Please try again.');
+                }
+            });
+        });
+        
+        // Helper function to count entities in a category
+        function countEntities(entities, category) {
+            return entities && entities[category] ? entities[category].length : 0;
+        }
+        
+        // Helper function to populate entity lists
+        function populateEntityList(listId, entities) {
+            const list = document.getElementById(listId);
+            list.innerHTML = '';
+            
+            if (!entities || entities.length === 0) {
+                const item = document.createElement('li');
+                item.textContent = 'None detected';
+                list.appendChild(item);
+                return;
+            }
+            
+            entities.forEach(entity => {
+                const item = document.createElement('li');
+                item.textContent = entity;
+                list.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html> 

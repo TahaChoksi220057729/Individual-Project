@@ -4,16 +4,13 @@ import spacy
 from spacy.tokens import Doc
 from text_processor import text_processor
 
-class KeywordAnalyzer:
-    """
-    Class responsible for analysing and categorising entities and keywords 
-    relevant to Model UN speeches.
-    
+class KeywordAnalyser:
+    """    
     This class identifies named entities, categorises them, and extracts 
     significant noun phrases and key concepts from the text.
     """
     
-    # Entity categories mapping to SpaCy labels
+    # Entity categories mapping to SpaCy 
     CATEGORIES = {
         'COUNTRIES': {'GPE', 'LOC', 'NORP'},
         'ORGANISATIONS': {'ORG'},
@@ -24,10 +21,10 @@ class KeywordAnalyzer:
     }
     
     def __init__(self):
-        """Initialise the keyword analyzer."""
+        """Initialise the keyword analyser."""
         self.nlp = text_processor.nlp
     
-    def analyze(self, text: str) -> Dict[str, Any]:
+    def analyse(self, text: str) -> Dict[str, Any]:
         """
         Analyse text to identify and categorise named entities.
         
@@ -172,4 +169,4 @@ class KeywordAnalyzer:
         return counts
 
 # Create a global instance for shared access
-keyword_analyzer = KeywordAnalyzer() 
+keyword_analyser = KeywordAnalyser() 

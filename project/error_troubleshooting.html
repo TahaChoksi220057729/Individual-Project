@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUN Speech Evaluator - Troubleshooting Guide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .warning {
+            background-color: #fffacd;
+            border-left: 4px solid #ffd700;
+            padding: 10px 15px;
+            margin: 20px 0;
+        }
+        .success {
+            background-color: #e6ffe6;
+            border-left: 4px solid #4CAF50;
+            padding: 10px 15px;
+            margin: 20px 0;
+        }
+        ol li, ul li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>MUN Speech Evaluator - Troubleshooting Guide</h1>
+
+    <div class="success">
+        <h2>Quick Start Guide</h2>
+        <p>To get started with the improved MUN Speech Evaluator:</p>
+        <ol>
+            <li><strong>Update your training data:</strong><br>
+                <code>python add_common_topics.py</code><br>
+                This adds speeches for 16 common MUN topics to ensure better model compatibility.
+            </li>
+            <li><strong>Refresh your models:</strong><br>
+                <code>python refresh_models.py</code><br>
+                This creates both a topic-based model and a safe mode model to handle all evaluation scenarios.
+            </li>
+            <li><strong>If you encounter model loading errors:</strong><br>
+                <code>python reset_models.py</code><br>
+                This will delete all existing model files and create fresh ones.
+            </li>
+            <li><strong>Start the web application:</strong><br>
+                <code>python app.py</code><br>
+                Access the interface at <a href="http://localhost:5000">http://localhost:5000</a>
+            </li>
+            <li><strong>Or use the command line:</strong><br>
+                <code>python evaluate_speech.py --topic "Climate Change"</code><br>
+                Add <code>--safe-mode</code> flag if you encounter feature mismatch errors.
+            </li>
+        </ol>
+    </div>
+    
+    <h2>Troubleshooting Feature Mismatches</h2>
+    <p>If you encounter an error similar to: <code>Error: X has 1495 features, but RandomForestRegressor is expecting 1494 features as input</code>, this indicates a feature dimension mismatch between your model and the speech being evaluated.</p>
+    
+    <div class="warning">
+        <p><strong>Common solutions:</strong></p>
+        <ol>
+            <li>Leave the topic field empty (this always works but may provide less accurate scoring)</li>
+            <li>Use only topics that were included in the training data</li>
+            <li>Enable the "Safe mode" checkbox in the web interface</li>
+            <li>Run <code>refresh_models.py</code> to update your models with common topics</li>
+        </ol>
+    </div>
+
+    <h2>Command-Line Alternative</h2>
+    <p>You can use the command-line tool for speech evaluation:</p>
+    <pre>python evaluate_speech.py --topic "Your Topic" --safe-mode</pre>
+    <p>The <code>--safe-mode</code> flag ensures the topic is only used for feedback generation, not for scoring, which avoids feature dimension mismatches.</p>
+
+    <h2>Training with Common Topics</h2>
+    <p>For best results, ensure your model is trained with the most common MUN topics:</p>
+    <ul>
+        <li>Climate Change</li>
+        <li>Nuclear Disarmament</li>
+        <li>Human Rights</li>
+        <li>Maritime Security</li>
+        <li>Refugee Crisis</li>
+        <li>Sustainable Development</li>
+        <li>Cyber Security</li>
+        <li>Terrorism</li>
+        <li>Economic Development</li>
+        <li>Healthcare</li>
+        <li>Education</li>
+        <li>Gender Equality</li>
+        <li>Water Security</li>
+        <li>Food Security</li>
+        <li>Peace and Security</li>
+        <li>International Law</li>
+    </ul>
+    <p>You can add all these topics to your training data by running:</p>
+    <pre>python add_common_topics.py</pre>
+
+    <h2>Retraining the Model</h2>
+    <p>If you've added new topics to your training data, you should retrain the model:</p>
+    <ol>
+        <li>Add training data with <code>collect_training_data.py</code> or <code>add_common_topics.py</code></li>
+        <li>Retrain with <code>refresh_models.py</code></li>
+        <li>If you encounter issues with corrupt models, run <code>reset_models.py</code> to create fresh models</li>
+        <li>If problems persist, delete existing model files to force a complete retraining</li>
+    </ol>
+
+    <h2>Technical Details</h2>
+    <p>Understanding how topics affect the model:</p>
+    <ul>
+        <li>Topics are one-hot encoded as features during model training</li>
+        <li>When a new topic (not seen during training) is used for evaluation, it creates a feature dimension mismatch</li>
+        <li>The safe mode model excludes topic features entirely, making it more robust but potentially less accurate</li>
+        <li>Using <code>add_common_topics.py</code> adds the most common MUN topics to prevent most mismatches</li>
+    </ul>
+</body>
+</html> <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUN Speech Evaluator - Troubleshooting Guide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .warning {
+            background-color: #fffacd;
+            border-left: 4px solid #ffd700;
+            padding: 10px 15px;
+            margin: 20px 0;
+        }
+        .success {
+            background-color: #e6ffe6;
+            border-left: 4px solid #4CAF50;
+            padding: 10px 15px;
+            margin: 20px 0;
+        }
+        ol li, ul li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>MUN Speech Evaluator - Troubleshooting Guide</h1>
+
+    <div class="success">
+        <h2>Quick Start Guide</h2>
+        <p>To get started with the improved MUN Speech Evaluator:</p>
+        <ol>
+            <li><strong>Update your training data:</strong><br>
+                <code>python add_common_topics.py</code><br>
+                This adds speeches for 16 common MUN topics to ensure better model compatibility.
+            </li>
+            <li><strong>Refresh your models:</strong><br>
+                <code>python refresh_models.py</code><br>
+                This creates both a topic-based model and a safe mode model to handle all evaluation scenarios.
+            </li>
+            <li><strong>If you encounter model loading errors:</strong><br>
+                <code>python reset_models.py</code><br>
+                This will delete all existing model files and create fresh ones.
+            </li>
+            <li><strong>Start the web application:</strong><br>
+                <code>python app.py</code><br>
+                Access the interface at <a href="http://localhost:5000">http://localhost:5000</a>
+            </li>
+            <li><strong>Or use the command line:</strong><br>
+                <code>python evaluate_speech.py --topic "Climate Change"</code><br>
+                Add <code>--safe-mode</code> flag if you encounter feature mismatch errors.
+            </li>
+        </ol>
+    </div>
+    
+    <h2>Troubleshooting Feature Mismatches</h2>
+    <p>If you encounter an error similar to: <code>Error: X has 1495 features, but RandomForestRegressor is expecting 1494 features as input</code>, this indicates a feature dimension mismatch between your model and the speech being evaluated.</p>
+    
+    <div class="warning">
+        <p><strong>Common solutions:</strong></p>
+        <ol>
+            <li>Leave the topic field empty (this always works but may provide less accurate scoring)</li>
+            <li>Use only topics that were included in the training data</li>
+            <li>Enable the "Safe mode" checkbox in the web interface</li>
+            <li>Run <code>refresh_models.py</code> to update your models with common topics</li>
+        </ol>
+    </div>
+
+    <h2>Command-Line Alternative</h2>
+    <p>You can use the command-line tool for speech evaluation:</p>
+    <pre>python evaluate_speech.py --topic "Your Topic" --safe-mode</pre>
+    <p>The <code>--safe-mode</code> flag ensures the topic is only used for feedback generation, not for scoring, which avoids feature dimension mismatches.</p>
+
+    <h2>Training with Common Topics</h2>
+    <p>For best results, ensure your model is trained with the most common MUN topics:</p>
+    <ul>
+        <li>Climate Change</li>
+        <li>Nuclear Disarmament</li>
+        <li>Human Rights</li>
+        <li>Maritime Security</li>
+        <li>Refugee Crisis</li>
+        <li>Sustainable Development</li>
+        <li>Cyber Security</li>
+        <li>Terrorism</li>
+        <li>Economic Development</li>
+        <li>Healthcare</li>
+        <li>Education</li>
+        <li>Gender Equality</li>
+        <li>Water Security</li>
+        <li>Food Security</li>
+        <li>Peace and Security</li>
+        <li>International Law</li>
+    </ul>
+    <p>You can add all these topics to your training data by running:</p>
+    <pre>python add_common_topics.py</pre>
+
+    <h2>Retraining the Model</h2>
+    <p>If you've added new topics to your training data, you should retrain the model:</p>
+    <ol>
+        <li>Add training data with <code>collect_training_data.py</code> or <code>add_common_topics.py</code></li>
+        <li>Retrain with <code>refresh_models.py</code></li>
+        <li>If you encounter issues with corrupt models, run <code>reset_models.py</code> to create fresh models</li>
+        <li>If problems persist, delete existing model files to force a complete retraining</li>
+    </ol>
+
+    <h2>Technical Details</h2>
+    <p>Understanding how topics affect the model:</p>
+    <ul>
+        <li>Topics are one-hot encoded as features during model training</li>
+        <li>When a new topic (not seen during training) is used for evaluation, it creates a feature dimension mismatch</li>
+        <li>The safe mode model excludes topic features entirely, making it more robust but potentially less accurate</li>
+        <li>Using <code>add_common_topics.py</code> adds the most common MUN topics to prevent most mismatches</li>
+    </ul>
+</body>
+</html> 

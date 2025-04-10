@@ -11,9 +11,7 @@ import joblib
 from feature_extraction import feature_extractor
 
 class SpeechEvaluationModel:
-    """
-    Class responsible for the machine learning aspects of speech evaluation.
-    
+    """  
     This class handles model training, prediction, and persistence for
     evaluating MUN speeches.
     """
@@ -65,7 +63,6 @@ class SpeechEvaluationModel:
                 # Get processed text for TF-IDF
                 text_list.append(speech)
             except Exception as e:
-                print(f"Error processing speech {i}: {e}")
                 raise ValueError(f"Error processing speech {i}: {e}")
         
         # Convert to DataFrame
@@ -195,25 +192,28 @@ class SpeechEvaluationModel:
             
         Returns:
             bool: True if successful, False otherwise
+            
+        Raises:
+            ValueError: If the model hasn't been trained
+            IOError: If there's an error saving the file
         """
         if not self.trained or self.model is None:
-            return False
+            raise ValueError("Cannot save: model has not been trained")
         
         try:
-            # Create directory if it doesn't exist
-            os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.', exist_ok=True)
-            
-            # Save model and necessary components
-            joblib.dump({
+            # Create a dictionary with all required objects
+            model_data = {
                 'model': self.model,
                 'vectoriser': self.vectoriser,
                 'feature_names': self.feature_names,
                 'topic_encoder': self.topic_encoder
-            }, file_path)
+            }
+            
+            # Save to disk
+            joblib.dump(model_data, file_path)
             return True
         except Exception as e:
-            print(f"Error saving model: {str(e)}")
-            return False
+            raise IOError(f"Failed to save model: {str(e)}")
     
     def load_model(self, file_path: str) -> bool:
         """
@@ -224,24 +224,28 @@ class SpeechEvaluationModel:
             
         Returns:
             bool: True if successful, False otherwise
+            
+        Raises:
+            FileNotFoundError: If the model file doesn't exist
+            ValueError: If the model file is invalid or corrupted
         """
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Model file not found: {file_path}")
+            
         try:
-            if not os.path.exists(file_path):
-                raise FileNotFoundError(f"Model file not found: {file_path}")
-                
-            # Load model and components
-            saved_data = joblib.load(file_path)
+            # Load the model data
+            model_data = joblib.load(file_path)
             
-            self.model = saved_data['model']
-            self.vectoriser = saved_data['vectoriser']
-            self.feature_names = saved_data['feature_names']
-            self.topic_encoder = saved_data.get('topic_encoder')
+            # Extract components
+            self.model = model_data['model']
+            self.vectoriser = model_data['vectoriser']
+            self.feature_names = model_data['feature_names']
+            self.topic_encoder = model_data.get('topic_encoder')
+            
             self.trained = True
-            
             return True
         except Exception as e:
-            print(f"Error loading model: {str(e)}")
-            return False
+            raise ValueError(f"Failed to load model: {str(e)}")
 
 # Create a global instance for shared access
 evaluation_model = SpeechEvaluationModel() 

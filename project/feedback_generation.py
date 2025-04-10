@@ -1,12 +1,9 @@
 from typing import Dict, List, Any
 from feature_extraction import feature_extractor
-from speech_evaluator import speech_evaluator
 from evaluation import evaluation_model
 
 class FeedbackGenerator:
-    """
-    Class responsible for generating detailed feedback for speeches.
-    
+    """    
     This class analyses the features of a speech and provides structured
     feedback, including strengths, weaknesses, and suggestions for improvement.
     """
@@ -54,10 +51,10 @@ class FeedbackGenerator:
                 'coherence_score': round(coherence['avg_similarity'] * 10, 1)
             },
             'key_entities': {
-                'Countries': entity_analysis['categorised_entities']['COUNTRIES'][:5],
-                'Organisations': entity_analysis['categorised_entities']['ORGANISATIONS'][:5],
-                'Policies': entity_analysis['categorised_entities']['POLICIES'][:5],
-                'Key Concepts': entity_analysis['categorised_entities']['KEY_CONCEPTS'][:5]
+                'Countries': entity_analysis['categorised_entities']['COUNTRIES'][:254],
+                'Organisations': entity_analysis['categorised_entities']['ORGANISATIONS'][:254],
+                'Policies': entity_analysis['categorised_entities']['POLICIES'][:254],
+                'Key Concepts': entity_analysis['categorised_entities']['KEY_CONCEPTS'][:254]
             },
             'suggestions': self._generate_suggestions(features, score)
         }
@@ -205,51 +202,5 @@ class FeedbackGenerator:
         
         return suggestions
     
-    def format_feedback_for_display(self, feedback: Dict[str, Any]) -> str:
-        """
-        Format feedback for display in console or UI.
-        
-        Args:
-            feedback (Dict[str, Any]): Feedback dictionary from generate_feedback
-            
-        Returns:
-            str: Formatted feedback text
-        """
-        formatted = []
-        
-        # Add header with score
-        formatted.append(f"SPEECH EVALUATION SCORE: {feedback['overall_score']:.1f}/10\n")
-        
-        # Add content analysis
-        formatted.append("--- CONTENT ANALYSIS ---")
-        formatted.append(feedback['content_analysis'])
-        formatted.append("")
-        
-        # Add structure analysis
-        formatted.append("--- STRUCTURE ---")
-        formatted.append(feedback['structure'])
-        formatted.append("")
-        
-        # Add speech statistics
-        formatted.append("--- SPEECH STATISTICS ---")
-        for key, value in feedback['language_metrics'].items():
-            formatted_key = key.replace('_', ' ').title()
-            formatted.append(f"- {formatted_key}: {value}")
-        formatted.append("")
-        
-        # Add key entities
-        formatted.append("--- KEY ENTITIES REFERENCED ---")
-        for category, entities in feedback['key_entities'].items():
-            if entities:
-                formatted.append(f"- {category}: {', '.join(entities)}")
-        formatted.append("")
-        
-        # Add suggestions
-        formatted.append("--- SUGGESTIONS FOR IMPROVEMENT ---")
-        for i, suggestion in enumerate(feedback['suggestions'], 1):
-            formatted.append(f"{i}. {suggestion}")
-        
-        return "\n".join(formatted)
-
 # Create a global instance for shared access
 feedback_generator = FeedbackGenerator() 

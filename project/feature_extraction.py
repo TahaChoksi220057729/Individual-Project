@@ -1,13 +1,9 @@
-
-
 from typing import Dict, List, Any
 from text_processor import text_processor
-from keyword_analysis import keyword_analyzer
+from keyword_analysis import keyword_analyser
 
 class FeatureExtractor:
-    """
-    Class responsible for extracting and combining features from speech text.
-    
+    """  
     This class combines text statistics, entity analysis, and coherence metrics
     to create a comprehensive feature set for speech evaluation.
     """
@@ -30,20 +26,17 @@ class FeatureExtractor:
         if not text or not text.strip():
             raise ValueError("Speech text cannot be empty")
         
-        # Preprocess the text
-        preprocessed_text = text_processor.preprocess_text(text)
-        
         # Compute text statistics
         text_stats = text_processor.compute_text_statistics(text)
         
         # Analyse coherence
-        coherence_metrics = text_processor.analyze_coherence(text)
+        coherence_metrics = text_processor.analyse_coherence(text)
         
         # Extract entities and keywords
-        entity_analysis = keyword_analyzer.analyze(text)
+        entity_analysis = keyword_analyser.analyse(text)
         
         # Count entities by category
-        entity_counts = keyword_analyzer.get_entity_counts(entity_analysis)
+        entity_counts = keyword_analyser.get_entity_counts(entity_analysis)
         
         # Combine all features
         features = {
