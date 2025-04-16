@@ -1,86 +1,354 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MUN Speech Evaluator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-            background-color: #f8f9fa;
+        :root[data-theme="light"] {
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --card-bg: #fff;
+            --card-border: rgba(0, 0, 0, 0.125);
+            --suggestion-bg: #f1f8ff;
+            --header-color: #2c3e50;
+            --feedback-bg: #f8f9fa;
+            --accent-color: #4a9eff;
+            --secondary-color: #e7f3ff;
         }
+
+        :root[data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --card-bg: #2d2d2d;
+            --card-border: rgba(255, 255, 255, 0.125);
+            --suggestion-bg: #2c3e50;
+            --header-color: #e0e0e0;
+            --feedback-bg: #2d2d2d;
+            --accent-color: #4a9eff;
+            --secondary-color: #1e3a5f;
+        }
+
+        body {
+            padding: 2rem;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
         .header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
+            color: var(--header-color);
+            padding-bottom: 1rem;
+            position: relative;
         }
+        
+        .header .logo {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            height: 60px;
+            width: auto;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
+        .header .logo:hover {
+             opacity: 1;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--accent-color);
+            display: inline-block;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            color: var(--text-color);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         .card {
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background-color: var(--card-bg);
+            border: none;
+            border-radius: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-body {
+            padding: 1.5rem 2rem;
+        }
+
+        .card-title {
+            color: var(--accent-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: var(--text-color);
+        }
+
+        .form-control, .form-select {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(74, 158, 255, 0.15);
+        }
+
+        .btn-primary {
+            padding: 0.75rem 2rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(74, 158, 255, 0.2);
+            background-color: #3d8deb;
+            border-color: #3d8deb;
+        }
+
+        .topic-badge {
+            font-size: 1rem;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            padding: 0.5rem 1.25rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            border: 2px solid var(--accent-color);
+        }
+
+        .score-display {
+            font-size: 4.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: var(--accent-color);
+        }
+
+        .progress {
+            height: 0.75rem;
+            border-radius: 1rem;
+            background-color: var(--secondary-color);
+        }
+
+        .progress-bar {
+            border-radius: 1rem;
+            transition: width 0.6s ease;
+        }
+
+        .table {
+            color: var(--text-color);
+            margin-bottom: 0;
+        }
+
+        .table td {
+            padding: 1rem;
+            border-color: var(--secondary-color);
+            vertical-align: middle;
+        }
+
+        .suggestion-item {
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            background-color: var(--secondary-color);
+            border-left: 4px solid var(--accent-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            transition: transform 0.2s ease;
+        }
+
+        .suggestion-item:hover {
+            transform: translateX(4px);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            padding: 0.75rem;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            border: 2px solid var(--accent-color);
+            background-color: var(--card-bg);
+            color: var(--accent-color);
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        .theme-toggle .theme-icon {
+            font-size: 1.2rem;
+        }
+
+        .entity-section h6 {
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        .entity-list {
+            margin: 0;
+            padding: 0;
+        }
+
+        .entity-list li {
+            list-style-type: none;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            background-color: var(--secondary-color);
+            border-radius: 6px;
+            color: var(--text-color);
+            transition: transform 0.2s ease;
+        }
+
+        .entity-list li:hover {
+            transform: translateX(4px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .card-body {
+                padding: 1.25rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .score-display {
+                font-size: 3.5rem;
+            }
+        }
+
         .feedback-section {
             margin-top: 2rem;
             display: none;
         }
-        .score-display {
-            font-size: 4rem;
-            font-weight: bold;
-            text-align: center;
-            margin: 1rem 0;
-        }
-        .suggestion-item {
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
-            background-color: #f1f8ff;
-            border-left: 4px solid #0d6efd;
-            border-radius: 0.25rem;
-        }
-        .spinner-border {
-            margin-right: 0.5rem;
-        }
-        .topic-badge {
-            font-size: 1rem;
-            background-color: #e7f5ff;
-            color: #0d6efd;
-            padding: 0.5rem 1rem;
-            border-radius: 1rem;
-            display: inline-block;
-            margin-bottom: 1rem;
-        }
+
         .feedback-box {
-            padding: 0.75rem;
-            border-radius: 0.25rem;
-            background-color: #f8f9fa;
-            border-left: 4px solid #6c757d;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: var(--secondary-color);
+            border-left: 5px solid #6c757d; /* Default border color */
+            color: var(--text-color);
+            margin-top: 1rem;
+            transition: border-left-color 0.3s ease;
         }
-        .feedback-good {
-            border-left-color: #28a745;
+
+        .feedback-box.feedback-good {
+            border-left-color: #28a745; /* Green */
         }
-        .feedback-warning {
-            border-left-color: #ffc107;
+
+        .feedback-box.feedback-warning {
+            border-left-color: #ffc107; /* Yellow */
         }
-        .feedback-poor {
-            border-left-color: #dc3545;
+
+        .feedback-box.feedback-poor {
+            border-left-color: #dc3545; /* Red */
         }
-        .entity-list li {
-            list-style-type: none;
-            padding: 0.25rem 0;
+
+        .safe-mode-indicator {
+            display: none;
         }
-        .entity-list li:not(:last-child) {
-            border-bottom: 1px solid #f0f0f0;
+
+        .form-icon {
+            display: none;
         }
-        .entity-section h6 {
-            margin-bottom: 0.5rem;
-            padding-bottom: 0.25rem;
-            border-bottom: 2px solid #e9ecef;
+
+        .error-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            background-color: #ff4444;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
     </style>
 </head>
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="theme-icon fas fa-sun"></i>
+    </button>
+
     <div class="container">
         <div class="header">
-            <h1>MUN Speech Evaluator</h1>
+            <h1><i class="fas fa-comment-dots"></i> MUN Speech Evaluator</h1>
+            <p>An AI-powered Model United Nations speech evaluation platform for improving delegate skills and conference performance</p>
         </div>
 
         <div class="row">
@@ -102,10 +370,6 @@
                                     <input type="text" class="form-control" id="custom-topic" placeholder="Enter custom topic" style="display: none;">
                                 </div>
                             </div>
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="safe-mode-checkbox" name="safe_mode">
-                                <label class="form-check-label" for="safe-mode-checkbox">Safe mode</label>
-                            </div>
                             <div class="mb-3">
                                 <label for="speech-text" class="form-label">Speech Text</label>
                                 <textarea class="form-control" id="speech-text" name="speech" rows="10" required></textarea>
@@ -123,9 +387,6 @@
                         <div class="card-body">
                             <h5 class="card-title">Score</h5>
                             <div id="topic-display" class="topic-badge"></div>
-                            <div id="safe-mode-indicator" style="display: none; font-size: 0.8rem; color: #6c757d; margin-bottom: 0.5rem;">
-                                <i>Safe mode: Topic used for feedback only</i>
-                            </div>
                             <div class="score-display" id="score-display">0.0</div>
                             <div class="progress">
                                 <div class="progress-bar" id="score-progress" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10"></div>
@@ -238,7 +499,45 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.all.min.js"></script>
     <script>
+        // Theme toggle functionality
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            
+            // Update theme icon using Font Awesome classes
+            const themeIcon = document.querySelector('.theme-icon');
+            if (newTheme === 'light') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+            
+            // Save theme preference
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Load saved theme preference
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Set initial theme icon
+            const themeIcon = document.querySelector('.theme-icon');
+            if (savedTheme === 'light') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        });
+
         // Handle custom topic selection
         document.getElementById('topic-select').addEventListener('change', function() {
             const customTopicInput = document.getElementById('custom-topic');
@@ -256,7 +555,14 @@
             
             const speechText = document.getElementById('speech-text').value;
             if (!speechText.trim()) {
-                alert('Please enter your speech text');
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Please enter your speech text',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#2d2d2d' : '#fff',
+                    color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#333'
+                });
                 return;
             }
             
@@ -265,13 +571,17 @@
             if (topic === 'custom') {
                 topic = document.getElementById('custom-topic').value;
                 if (!topic.trim()) {
-                    alert('Please enter a custom topic');
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Please enter a custom topic',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#2d2d2d' : '#fff',
+                        color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#333'
+                    });
                     return;
                 }
             }
-            
-            // Check if safe mode is enabled
-            const safeMode = document.getElementById('safe-mode-checkbox').checked;
             
             // Show loading spinner
             const loadingSpinner = document.getElementById('loading-spinner');
@@ -282,10 +592,8 @@
             // Send the request to the server
             const requestData = {
                 speech: speechText,
-                topic: topic === '' ? null : topic,
-                safe_mode: safeMode
+                topic: topic === '' ? null : topic
             };
-            console.log('Sending data:', requestData);
             
             fetch('/api/evaluate', {
                 method: 'POST',
@@ -306,24 +614,19 @@
                 evaluateBtn.disabled = false;
                 
                 if (data.error) {
-                    let errorMessage = data.error;
-                    if (errorMessage.includes('features')) {
-                        errorMessage = 'Try a different topic or enable safe mode';
-                    }
-                    alert('Error: ' + errorMessage);
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.error,
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#2d2d2d' : '#fff',
+                        color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#333'
+                    });
                     return;
                 }
                 
                 // Display feedback section
                 document.getElementById('feedback-section').style.display = 'block';
-                
-                // Update safe mode indicator
-                const safeModeIndicator = document.getElementById('safe-mode-indicator');
-                if (data.safe_mode_used || safeMode) {
-                    safeModeIndicator.style.display = 'block';
-                } else {
-                    safeModeIndicator.style.display = 'none';
-                }
                 
                 // Update topic display
                 const topicDisplay = document.getElementById('topic-display');
@@ -369,10 +672,11 @@
                 ].join(', ');
                 document.getElementById('content-statistics').textContent = contentStats;
                 
-                // Conditionally display content feedback
+                // Update Content Analysis Feedback Box
                 const contentFeedback = document.getElementById('content-feedback');
-                contentFeedback.textContent = feedback.content_analysis;
-                
+                contentFeedback.textContent = feedback.content_analysis || 'No specific content feedback available.';
+                // Remove existing classes first
+                contentFeedback.classList.remove('feedback-good', 'feedback-warning', 'feedback-poor');
                 // Apply appropriate feedback styling based on content score
                 if (contentScore >= 8) {
                     contentFeedback.classList.add('feedback-good');
@@ -387,10 +691,11 @@
                 document.getElementById('avg-sentence-length').textContent = metrics.average_sentence_length;
                 document.getElementById('coherence-score').textContent = coherenceScore + '/10';
                 
-                // Conditionally display structure feedback
+                // Update Structure Analysis Feedback Box
                 const structureFeedback = document.getElementById('structure-feedback');
-                structureFeedback.textContent = feedback.structure;
-                
+                structureFeedback.textContent = feedback.structure || 'No specific structure feedback available.';
+                // Remove existing classes first
+                structureFeedback.classList.remove('feedback-good', 'feedback-warning', 'feedback-poor');
                 // Apply appropriate feedback styling based on coherence score
                 if (coherenceScore >= 7) {
                     structureFeedback.classList.add('feedback-good');
@@ -443,16 +748,37 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.error) {
-                            alert('Error: ' + data.error);
+                            Swal.fire({
+                                title: 'Error!',
+                                text: data.error,
+                                icon: 'error',
+                                confirmButtonText: 'OK',
+                                background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#2d2d2d' : '#fff',
+                                color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#333'
+                            });
                         } else {
                             window.location.reload();
                         }
                     })
                     .catch(() => {
-                        alert('Unable to evaluate speech. Please try again.');
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Unable to evaluate speech. Please try again.',
+                            icon: 'error',
+                            confirmButtonText: 'OK',
+                            background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#2d2d2d' : '#fff',
+                            color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#333'
+                        });
                     });
                 } else {
-                    alert('Error evaluating speech. Please try again.');
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Error evaluating speech. Please try again.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#2d2d2d' : '#fff',
+                        color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#333'
+                    });
                 }
             });
         });
