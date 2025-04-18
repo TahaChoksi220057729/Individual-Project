@@ -8,7 +8,7 @@ from evaluation import evaluation_model
 from feedback_generation import feedback_generator
 
 # Constants
-DEFAULT_MODEL_PATH = "mun_speech_evaluator.joblib"
+DEFAULT_MODEL_PATH = "output/models/mun_transfer_model/model.safetensors"
 SAFE_MODEL_PATH = "mun_speech_evaluator_safe.joblib"
 TRAINING_DATA_PATH = "training_data.json"
 
