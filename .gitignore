@@ -1,1 +1,6 @@
-./output/* 
+/.uvenv/*
+project/.webenv/*
+*.csv
+*.pyc
+*.whl
+*.safetensors

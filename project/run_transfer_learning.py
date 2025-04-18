@@ -5,6 +5,9 @@ import subprocess
 import time
 import shutil
 import sys
+import nltk
+
+nltk.download('punkt_tab')
 
 # Get the current Python executable path for subprocess calls
 PYTHON_EXECUTABLE = sys.executable
