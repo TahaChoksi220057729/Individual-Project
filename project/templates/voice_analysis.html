@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Analysis - MUN Speech Evaluator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body {
+            padding-top: 20px;
+            padding-bottom: 40px;
+            background-color: #f8f9fa;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .recorder-container {
+            text-align: center;
+            padding: 30px 15px;
+            background-color: #f1f3f5;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .timer {
+            font-size: 1.5rem;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .record-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #dc3545;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 auto;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .record-button:hover {
+            transform: scale(1.05);
+        }
+        .record-button.recording {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .audio-controls {
+            margin-top: 15px;
+        }
+        .result-section {
+            margin-top: 30px;
+            display: none;
+        }
+        .metric-card {
+            transition: transform 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        .score-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 15px;
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .upload-btn-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="theme-icon fas fa-sun"></i>
+    </button>
+
+    <div class="container">
+        <div class="header">
+            <div class="nav-links">
+                <a href="/" class="nav-link">Text Analysis</a>
+                <a href="/voice" class="nav-link">Voice Analysis</a>
+            </div>
+            <h1><i class="fas fa-microphone-alt"></i> Voice Analysis</h1>
+            <p>Record or upload your speech for comprehensive voice analysis and feedback</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Analyze Your Voice</h5>
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="record-tab" data-bs-toggle="tab" data-bs-target="#record" type="button" role="tab" aria-controls="record" aria-selected="true">
+                                    <i class="fas fa-microphone"></i> Record
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="false">
+                                    <i class="fas fa-upload"></i> Upload
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="tab-content p-3" id="myTabContent">
+                            <div class="tab-pane fade show active" id="record" role="tabpanel" aria-labelledby="record-tab">
+                                <div class="recorder-container">
+                                    <div class="timer" id="timer">00:00</div>
+                                    <div class="record-button" id="recordButton">
+                                        <i class="fas fa-microphone"></i>
+                                    </div>
+                                    <div class="audio-controls mt-3" style="display: none;" id="audioControls">
+                                        <audio id="audioPlayback" controls class="w-100"></audio>
+                                        <div class="d-flex justify-content-between mt-3">
+                                            <button class="btn btn-outline-secondary" id="recordAgainButton">
+                                                <i class="fas fa-redo"></i> Record Again
+                                            </button>
+                                            <button class="btn btn-primary" id="analyzeRecordingButton">
+                                                <i class="fas fa-chart-line"></i> Analyze
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="upload" role="tabpanel" aria-labelledby="upload-tab">
+                                <form id="uploadForm" class="p-3 text-center">
+                                    <div class="mb-3">
+                                        <div class="upload-btn-wrapper">
+                                            <button class="btn btn-outline-primary" type="button">
+                                                <i class="fas fa-file-audio"></i> Choose Audio File
+                                            </button>
+                                            <input type="file" id="audioFileInput" accept="audio/*" />
+                                        </div>
+                                        <div id="fileNameDisplay" class="mt-2 text-muted"></div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" id="uploadButton" disabled>
+                                        <i class="fas fa-chart-line"></i> Upload & Analyze
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <label for="topicSelect" class="form-label">Speech Topic (optional):</label>
+                            <select class="form-select" id="topicSelect">
+                                <option value="">Select a topic</option>
+                                {% for topic in topics %}
+                                <option value="{{ topic }}">{{ topic }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" id="safeModeCheck">
+                            <label class="form-check-label" for="safeModeCheck">
+                                Safe Mode (evaluate without using topic for scoring)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="loading-spinner" id="loadingSpinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Analyzing your speech...</p>
+                </div>
+                
+                <div class="result-section" id="resultSection">
+                    <h3 class="text-center mb-4">Analysis Results</h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card metric-card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Voice Analysis</h5>
+                                    <div class="score-circle bg-primary text-white" id="voiceScore">-</div>
+                                    <p class="card-text">Overall voice quality score</p>
+                                    <div class="metric-tooltip">
+                                        The overall voice quality score reflects a weighted average of all voice metrics, including modulation, pace, clarity, and tone.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card metric-card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Content Analysis</h5>
+                                    <div class="score-circle bg-success text-white" id="contentScore">-</div>
+                                    <p class="card-text">Speech content score</p>
+                                    <div class="metric-tooltip">
+                                        This score evaluates the quality of the speech content, including structure, vocabulary, and relevance to the selected topic.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <ul class="nav nav-tabs card-header-tabs" id="resultTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="voice-metrics-tab" data-bs-toggle="tab" data-bs-target="#voiceMetrics" type="button" role="tab">Voice Metrics</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="transcript-tab" data-bs-toggle="tab" data-bs-target="#transcript" type="button" role="tab">Transcript</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="feedback-tab" data-bs-toggle="tab" data-bs-target="#feedback" type="button" role="tab">Feedback</button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content" id="resultTabContent">
+                                <div class="tab-pane fade show active" id="voiceMetrics" role="tabpanel">
+                                    <div class="row" id="metricsContainer">
+                                        <!-- Metrics will be inserted here -->
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="transcript" role="tabpanel">
+                                    <div class="p-3 bg-light rounded">
+                                        <h6>Transcribed Speech:</h6>
+                                        <p id="transcriptText" class="mt-3"></p>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="feedback" role="tabpanel">
+                                    <div id="feedbackContainer">
+                                        <!-- Feedback will be inserted here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.all.min.js"></script>
+    <script src="/js/audio_recorder.js"></script>
+    <script>
+        // Theme toggle functionality
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            
+            // Update theme icon
+            const themeIcon = document.querySelector('.theme-icon');
+            if (newTheme === 'light') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+            
+            // Save theme preference
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Load saved theme preference
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Set initial theme icon
+            const themeIcon = document.querySelector('.theme-icon');
+            if (savedTheme === 'light') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+            
+            // Audio recorder elements
+            const recordButton = document.getElementById('recordButton');
+            const timer = document.getElementById('timer');
+            const audioControls = document.getElementById('audioControls');
+            const audioPlayback = document.getElementById('audioPlayback');
+            const recordAgainButton = document.getElementById('recordAgainButton');
+            const analyzeRecordingButton = document.getElementById('analyzeRecordingButton');
+            const fileInput = document.getElementById('audioFileInput');
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+            const uploadButton = document.getElementById('uploadButton');
+            const uploadForm = document.getElementById('uploadForm');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const resultSection = document.getElementById('resultSection');
+            const voiceScore = document.getElementById('voiceScore');
+            const contentScore = document.getElementById('contentScore');
+            const metricsContainer = document.getElementById('metricsContainer');
+            const transcriptText = document.getElementById('transcriptText');
+            const feedbackContainer = document.getElementById('feedbackContainer');
+            
+            // State variables
+            let timerInterval;
+            let seconds = 0;
+            let isRecording = false;
+            let recordingFile = null;
+            
+            // Initialize audio recorder
+            audioRecorder.initialize().then(success => {
+                if (!success) {
+                    Swal.fire({
+                        title: 'Microphone Access',
+                        text: 'Could not access microphone. Please ensure you have granted permission.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#2d2d2d' : '#fff',
+                        color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#333'
+                    });
+                    recordButton.disabled = true;
+                }
+            });
+            
+            // Update timer display
+            function updateTimer() {
+                seconds++;
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                timer.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+            
+            // Toggle recording state
+            function toggleRecording() {
+                if (!isRecording) {
+                    // Start recording
+                    audioRecorder.startRecording();
+                    isRecording = true;
+                    recordButton.classList.add('recording');
+                    recordButton.innerHTML = '<i class="fas fa-stop"></i>';
+                    
+                    // Start timer
+                    seconds = 0;
+                    updateTimer();
+                    timerInterval = setInterval(updateTimer, 1000);
+                    
+                    // Hide audio controls
+                    audioControls.style.display = 'none';
+                } else {
+                    // Stop recording
+                    audioRecorder.stopRecording();
+                    isRecording = false;
+                    recordButton.classList.remove('recording');
+                    recordButton.innerHTML = '<i class="fas fa-microphone"></i>';
+                    
+                    // Stop timer
+                    clearInterval(timerInterval);
+                    
+                    // Wait for recording to finish
+                    document.addEventListener('recordingFinished', function handleRecordingFinished(e) {
+                        // Set audio source
+                        audioPlayback.src = e.detail.audioUrl;
+                        
+                        // Show audio controls
+                        audioControls.style.display = 'block';
+                        
+                        // Get recording file
+                        recordingFile = audioRecorder.getAudioFile();
+                        
+                        // Remove event listener
+                        document.removeEventListener('recordingFinished', handleRecordingFinished);
+                    }, { once: true });
+                }
+            }
+            
+            // Reset recording
+            function resetRecording() {
+                audioControls.style.display = 'none';
+                recordingFile = null;
+                seconds = 0;
+                timer.textContent = '00:00';
+            }
+            
+            // Analyze recording
+            function analyzeRecording() {
+                if (!recordingFile) {
+                    Swal.fire({
+                        title: 'No Recording',
+                        text: 'Please record your speech first.',
+                        icon: 'warning',
+                        confirmButtonText: 'OK',
+                        background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#2d2d2d' : '#fff',
+                        color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#333'
+                    });
+                    return;
+                }
+                
+                // Prepare form data
+                const formData = new FormData();
+                formData.append('audio', recordingFile);
+                formData.append('topic', document.getElementById('topicSelect').value);
+                formData.append('safe_mode', document.getElementById('safeModeCheck').checked);
+                
+                // Show loading spinner
+                loadingSpinner.style.display = 'block';
+                resultSection.style.display = 'none';
+                
+                // Send request
+                fetch('/api/record_audio', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading spinner
+                    loadingSpinner.style.display = 'none';
+                    
+                    // Display results
+                    displayResults(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loadingSpinner.style.display = 'none';
+                    Swal.fire({
+                        title: 'Analysis Error',
+                        text: 'An error occurred during analysis. Please try again.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#2d2d2d' : '#fff',
+                        color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#333'
+                    });
+                });
+            }
+            
+            // Handle file input change
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    fileNameDisplay.textContent = file.name;
+                    uploadButton.disabled = false;
+                } else {
+                    fileNameDisplay.textContent = '';
+                    uploadButton.disabled = true;
+                }
+            });
+            
+            // Handle upload form submission
+            uploadForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!fileInput.files.length) {
+                    Swal.fire({
+                        title: 'No File Selected',
+                        text: 'Please select an audio file for analysis.',
+                        icon: 'warning',
+                        confirmButtonText: 'OK',
+                        background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#2d2d2d' : '#fff',
+                        color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#333'
+                    });
+                    return;
+                }
+                
+                // Prepare form data
+                const formData = new FormData();
+                formData.append('audio', fileInput.files[0]);
+                formData.append('topic', document.getElementById('topicSelect').value);
+                formData.append('safe_mode', document.getElementById('safeModeCheck').checked);
+                
+                // Show loading spinner
+                loadingSpinner.style.display = 'block';
+                resultSection.style.display = 'none';
+                
+                // Send request
+                fetch('/api/upload_audio', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading spinner
+                    loadingSpinner.style.display = 'none';
+                    
+                    // Display results
+                    displayResults(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loadingSpinner.style.display = 'none';
+                    Swal.fire({
+                        title: 'Upload Error',
+                        text: 'An error occurred during file upload. Please try again.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#2d2d2d' : '#fff',
+                        color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#333'
+                    });
+                });
+            });
+            
+            // Display analysis results
+            function displayResults(data) {
+                if (!data || data.error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.error || 'Unknown error occurred during analysis.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#2d2d2d' : '#fff',
+                        color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#333'
+                    });
+                    return;
+                }
+                
+                // Show result section
+                resultSection.style.display = 'block';
+                
+                // Update scores
+                const voiceAnalysis = data.voice_analysis;
+                const textAnalysis = data.text_analysis;
+                
+                voiceScore.textContent = voiceAnalysis.overall_score ? voiceAnalysis.overall_score.toFixed(1) : '-';
+                contentScore.textContent = textAnalysis.score ? textAnalysis.score.toFixed(1) : '-';
+                
+                // Show transcript
+                transcriptText.textContent = voiceAnalysis.transcript || 'Transcript not available.';
+                
+                // Display metrics
+                metricsContainer.innerHTML = '';
+                
+                // Define metrics with explanations
+                const metrics = [
+                    { 
+                        key: 'voice_modulation', 
+                        title: 'Voice Modulation', 
+                        icon: 'fa-wave-square',
+                        description: 'Measures the variation in pitch throughout your speech. Good modulation makes your speech engaging and expressive. Higher scores indicate better pitch variation.'
+                    },
+                    { 
+                        key: 'speech_rate', 
+                        title: 'Speech Rate', 
+                        icon: 'fa-tachometer-alt',
+                        description: 'Words per minute (WPM). Ideal speech rate is between 120-160 WPM. Speaking too fast or too slow can impact comprehension and engagement.'
+                    },
+                    { 
+                        key: 'pauses', 
+                        title: 'Pauses', 
+                        icon: 'fa-clock',
+                        description: 'Analyzes strategic pauses in your speech. Good pauses help emphasize key points and give the audience time to process information. 2-6 pauses per minute is ideal.'
+                    },
+                    { 
+                        key: 'stuttering', 
+                        title: 'Stuttering', 
+                        icon: 'fa-exclamation',
+                        description: 'Detects repeated words and filler words ("um", "uh", "like") that can distract from your message. Lower instances of stuttering result in higher scores.'
+                    },
+                    { 
+                        key: 'clarity', 
+                        title: 'Clarity', 
+                        icon: 'fa-volume-up',
+                        description: 'Measures how clearly your words are articulated and understood. Based on speech recognition confidence and sentence completeness.'
+                    },
+                    { 
+                        key: 'vocabulary', 
+                        title: 'Vocabulary', 
+                        icon: 'fa-book',
+                        description: 'Analyzes lexical diversity (unique words) and language complexity. Higher scores reflect more sophisticated language use appropriate for Model UN.'
+                    },
+                    { 
+                        key: 'confidence', 
+                        title: 'Confidence', 
+                        icon: 'fa-chart-line',
+                        description: 'Evaluates speaking confidence based on energy level, minimal filler words, and steady volume. Confident speakers maintain consistent vocal strength.'
+                    },
+                    { 
+                        key: 'emotion', 
+                        title: 'Emotion', 
+                        icon: 'fa-smile',
+                        description: 'Detects emotional tone in your speech. Passionate and confident delivery is valued in Model UN debates.'
+                    },
+                    { 
+                        key: 'pitch_tone', 
+                        title: 'Pitch & Tone', 
+                        icon: 'fa-music',
+                        description: 'Measures voice quality including pitch stability, jitter (pitch variation), and shimmer (amplitude variation). Better voice quality results in higher scores.'
+                    }
+                ];
+                
+                metrics.forEach(metric => {
+                    if (voiceAnalysis[metric.key]) {
+                        const score = voiceAnalysis[metric.key].score.toFixed(1);
+                        const color = getScoreColor(score);
+                        
+                        const metricHtml = `
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 metric-card">
+                                    <div class="card-body text-center">
+                                        <i class="fas ${metric.icon} mb-2" style="font-size: 24px; color: ${color};"></i>
+                                        <h6 class="card-title">${metric.title}</h6>
+                                        <div class="display-6 fw-bold" style="color: ${color};">${score}</div>
+                                        <small class="text-muted">out of 10</small>
+                                        <div class="metric-tooltip">
+                                            ${metric.description}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        metricsContainer.innerHTML += metricHtml;
+                    }
+                });
+                
+                // Display feedback
+                feedbackContainer.innerHTML = '';
+                
+                if (textAnalysis.feedback) {
+                    let feedbackHtml = '<div class="list-group">';
+                    
+                    // General feedback
+                    if (textAnalysis.feedback.general) {
+                        feedbackHtml += `
+                            <div class="list-group-item">
+                                <h6 class="mb-1">General Feedback</h6>
+                                <p class="mb-1">${textAnalysis.feedback.general}</p>
+                            </div>
+                        `;
+                    }
+                    
+                    // Strengths
+                    if (textAnalysis.feedback.strengths && textAnalysis.feedback.strengths.length) {
+                        feedbackHtml += `
+                            <div class="list-group-item">
+                                <h6 class="mb-1">Strengths</h6>
+                                <ul class="mb-1">
+                                    ${textAnalysis.feedback.strengths.map(s => `<li>${s}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    
+                    // Areas for improvement
+                    if (textAnalysis.feedback.improvements && textAnalysis.feedback.improvements.length) {
+                        feedbackHtml += `
+                            <div class="list-group-item">
+                                <h6 class="mb-1">Areas for Improvement</h6>
+                                <ul class="mb-1">
+                                    ${textAnalysis.feedback.improvements.map(i => `<li>${i}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    
+                    feedbackHtml += '</div>';
+                    feedbackContainer.innerHTML = feedbackHtml;
+                } else {
+                    feedbackContainer.innerHTML = '<p class="text-center">No feedback available for the transcribed text.</p>';
+                }
+                
+                // Scroll to results
+                resultSection.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Get color based on score
+            function getScoreColor(score) {
+                score = parseFloat(score);
+                if (score >= 8) return '#28a745'; // Green
+                if (score >= 6) return '#17a2b8'; // Blue
+                if (score >= 4) return '#ffc107'; // Yellow
+                return '#dc3545'; // Red
+            }
+            
+            // Event listeners
+            recordButton.addEventListener('click', toggleRecording);
+            recordAgainButton.addEventListener('click', resetRecording);
+            analyzeRecordingButton.addEventListener('click', analyzeRecording);
+        });
+    </script>
+</body>
+</html> 

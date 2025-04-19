@@ -68,6 +68,26 @@
              opacity: 1;
         }
 
+        .nav-links {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .nav-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background-color: var(--secondary-color);
+        }
+
         .header h1 {
             font-size: 2.5rem;
             font-weight: 600;
@@ -347,6 +367,10 @@
 
     <div class="container">
         <div class="header">
+            <div class="nav-links">
+                <a href="/" class="nav-link">Text Analysis</a>
+                <a href="/voice" class="nav-link">Voice Analysis</a>
+            </div>
             <h1><i class="fas fa-comment-dots"></i> MUN Speech Evaluator</h1>
             <p>An AI-powered Model United Nations speech evaluation platform for improving delegate skills and conference performance</p>
         </div>

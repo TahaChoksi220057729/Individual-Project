@@ -1,6 +1,8 @@
 /.uvenv/*
+/.venv/*
 project/.webenv/*
 *.csv
 *.pyc
 *.whl
 *.safetensors
+project/uploads/*

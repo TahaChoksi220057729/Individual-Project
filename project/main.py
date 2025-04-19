@@ -3,12 +3,25 @@
 
 import os
 import json
+import warnings
+
+# Suppress warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*NumPy.*")
+warnings.filterwarnings("ignore", message=".*torch.*")
+warnings.filterwarnings("ignore", message=".*_register_pytree_node.*")
+warnings.filterwarnings("ignore", message=".*NVML.*")
 
 # Set environment variable to silence Flask development server warnings
 os.environ['FLASK_ENV'] = 'production'
 
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, url_for, redirect, send_from_directory
 from speech_evaluator import SpeechEvaluator
+from voice_analyzer import process_audio_file
+import tempfile
+import uuid
+import werkzeug.utils
 
 # Initialize speech evaluator
 speech_evaluator = SpeechEvaluator()
@@ -18,6 +31,12 @@ app = Flask(__name__,
             static_url_path='',
             static_folder='static',
             template_folder='templates')
+
+# Create upload folder
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
 
 # Helper function for error handling
 def handle_error(e, status_code=400):
@@ -134,114 +153,6 @@ def get_topics():
     except Exception as e:
         return handle_error(e)
 
-@app.route('/api/training/add', methods=['POST'])
-def add_training_sample():
-    """
-    API endpoint to add a training sample.
-    
-    Expects JSON with:
-    - speech: text of speech
-    - score: numerical score (1-10)
-    - topic (optional): topic of the speech
-    """
-    if not request.is_json:
-        return jsonify({'error': 'Request must be JSON'}), 400
-    
-    data = request.get_json()
-    
-    # Validate input
-    if 'speech' not in data or not data['speech'].strip():
-        return jsonify({'error': 'Speech text is required'}), 400
-    
-    if 'score' not in data:
-        return jsonify({'error': 'Score is required'}), 400
-    
-    try:
-        # Add the training sample
-        speech = data['speech'].strip()
-        score = float(data['score'])
-        topic = data.get('topic')
-        
-        # Clean up topic if it's empty
-        if topic and not topic.strip():
-            topic = None
-        
-        success = speech_evaluator.add_training_sample(speech, score, topic)
-        
-        if success:
-            return jsonify({'success': True, 'message': 'Training sample added successfully'})
-        else:
-            return handle_error(Exception('Failed to add training sample'), 500)
-    except ValueError as e:
-        return handle_error(e, 400)
-    except Exception as e:
-        return handle_error(e, 500)
-
-@app.route('/api/training/data', methods=['GET'])
-def get_training_data():
-    """API endpoint to retrieve training data."""
-    try:
-        data = speech_evaluator.load_training_data()
-        return jsonify({'data': data})
-    except Exception as e:
-        return handle_error(e)
-
-@app.route('/api/model/train', methods=['POST'])
-def train_model():
-    """
-    API endpoint to trigger model training.
-    
-    Can be called without parameters to train with all available data,
-    or with specific training data provided.
-    """
-    try:
-        if request.is_json:
-            data = request.get_json()
-            if 'speeches' in data and 'scores' in data:
-                speeches = data['speeches']
-                scores = data['scores']
-                topics = data.get('topics')
-                
-                if len(speeches) != len(scores):
-                    return handle_error(ValueError('Number of speeches must match number of scores'), 400)
-                
-                success = speech_evaluator.train_model(speeches, scores, topics)
-            else:
-                # Train with all available data
-                training_data = speech_evaluator.load_training_data()
-                if not training_data:
-                    return handle_error(ValueError('No training data available'), 400)
-                
-                speeches = [item['speech'] for item in training_data]
-                scores = [item['score'] for item in training_data]
-                
-                if all('topic' in item for item in training_data):
-                    topics = [item['topic'] for item in training_data]
-                    success = speech_evaluator.train_model(speeches, scores, topics)
-                else:
-                    success = speech_evaluator.train_model(speeches, scores)
-        else:
-            # Train with all available data
-            training_data = speech_evaluator.load_training_data()
-            if not training_data:
-                return handle_error(ValueError('No training data available'), 400)
-            
-            speeches = [item['speech'] for item in training_data]
-            scores = [item['score'] for item in training_data]
-            
-            if all('topic' in item for item in training_data):
-                topics = [item['topic'] for item in training_data]
-                success = speech_evaluator.train_model(speeches, scores, topics)
-            else:
-                success = speech_evaluator.train_model(speeches, scores)
-        
-        if success:
-            return jsonify({'success': True, 'message': 'Model trained successfully'})
-        else:
-            return handle_error(Exception('Failed to train model'), 500)
-    except Exception as e:
-        return handle_error(e, 500)
-
 @app.route('/debug/topics')
 def debug_topics():
     """Debug endpoint to directly view topics."""
@@ -250,6 +161,125 @@ def debug_topics():
         'topics_count': len(topics),
         'topics': topics
     })
+
+# New routes for voice analysis
+
+@app.route('/voice', methods=['GET'])
+def voice_analysis_page():
+    """Render the voice analysis page."""
+    topics = speech_evaluator.get_topics()
+    return render_template('voice_analysis.html', topics=topics)
+
+@app.route('/api/upload_audio', methods=['POST'])
+def upload_audio():
+    """
+    API endpoint for audio file upload.
+    
+    Expects:
+    - audio: audio file (wav, mp3, etc.)
+    - topic (optional): speech topic
+    
+    Returns:
+    - voice_analysis: detailed voice analysis results
+    - text_analysis: text-based analysis of transcribed speech
+    """
+    try:
+        if 'audio' not in request.files:
+            return jsonify({'error': 'No audio file provided'}), 400
+        
+        audio_file = request.files['audio']
+        if audio_file.filename == '':
+            return jsonify({'error': 'No audio file selected'}), 400
+        
+        # Log upload info
+        print(f"Processing audio upload: {audio_file.filename} ({audio_file.content_type})")
+        
+        # Secure the filename
+        filename = werkzeug.utils.secure_filename(audio_file.filename)
+        
+        # Add unique ID to prevent filename collisions
+        file_id = str(uuid.uuid4())[:8]
+        base, ext = os.path.splitext(filename)
+        
+        # Ensure we have a valid extension
+        if not ext:
+            # Try to determine extension from content type
+            if 'webm' in audio_file.content_type:
+                ext = '.webm'
+            elif 'ogg' in audio_file.content_type:
+                ext = '.ogg'
+            elif 'mp3' in audio_file.content_type:
+                ext = '.mp3'
+            elif 'mp4' in audio_file.content_type:
+                ext = '.mp4'
+            else:
+                ext = '.audio'  # Generic fallback
+                
+        unique_filename = f"{base}_{file_id}{ext}"
+        
+        # Create full path to save the file
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+        
+        # Save the file
+        audio_file.save(filepath)
+        print(f"Saved audio file to: {filepath}")
+        
+        # Process the audio file
+        voice_results = process_audio_file(filepath)
+        
+        # Check if there was an error
+        if 'error' in voice_results:
+            print(f"Error processing audio: {voice_results['error']}")
+        
+        # Get topic if provided
+        topic = request.form.get('topic')
+        safe_mode = request.form.get('safe_mode') == 'true'
+        
+        # Use the transcript for text analysis
+        transcript = voice_results.get('transcript', '')
+        
+        # Only do text analysis if we have a transcript
+        text_results = {}
+        if transcript:
+            try:
+                text_results = speech_evaluator.evaluate_speech(transcript, topic, safe_mode)
+            except Exception as e:
+                text_results = {
+                    'error': str(e),
+                    'score': 5.0,
+                    'feedback': {}
+                }
+        
+        # Combine results
+        combined_results = {
+            'voice_analysis': voice_results,
+            'text_analysis': text_results,
+            'success': True
+        }
+        
+        return jsonify(combined_results)
+        
+    except Exception as e:
+        print(f"Exception in upload_audio: {str(e)}")
+        return handle_error(e)
+
+@app.route('/api/record_audio', methods=['POST'])
+def record_audio():
+    """
+    API endpoint for audio recording from browser.
+    
+    Expects:
+    - audio: audio blob (wav format)
+    - topic (optional): speech topic
+    
+    Identical to upload_audio but with a different route name for clarity.
+    """
+    return upload_audio()
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    """Serve uploaded files."""
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     # Determine port for running the app
@@ -260,9 +290,10 @@ if __name__ == '__main__':
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
     
-    # Create static/templates directories if they don't exist
+    # Create static/templates/uploads directories if they don't exist
     os.makedirs('static', exist_ok=True)
     os.makedirs('templates', exist_ok=True)
+    os.makedirs('uploads', exist_ok=True)
     
     # Run the app
     print(f"MUN Speech Evaluator running on port {port}")

@@ -39,83 +39,28 @@ class SpeechEvaluator:
         
     def initialise_model(self) -> bool:
         """
-        Initialise or reload the evaluation model.
+        Initialise the evaluation model by loading it from disk.
         
         Returns:
             bool: True if model was loaded successfully, False otherwise
-        """
-        # Try to load the model if it exists
-        if os.path.exists(self.model_path):
-            try:
-                evaluation_model.load_model(self.model_path)
-                self._log(f"Loaded model from {self.model_path}")
-                return True
-            except (FileNotFoundError, ValueError) as e:
-                # Handle model loading errors
-                self._log(f"Error loading model: {e}")
-                self._log("Will create a new model")
-            except Exception as e:
-                # Handle any other unexpected errors
-                self._log(f"Unexpected error loading model: {e}")
         
-        # If we get here, we need to create a new model
-        return self._train_new_model()
-    
-    def _train_new_model(self) -> bool:
+        Raises:
+            FileNotFoundError: If model file doesn't exist
         """
-        Train a new model using available training data.
-        
-        Returns:
-            bool: True if model was trained successfully, False otherwise
-        """
+        if not os.path.exists(self.model_path):
+            error_msg = f"Model file not found at {self.model_path}. Please ensure the model file exists."
+            self._log(error_msg)
+            raise FileNotFoundError(error_msg)
+            
         try:
-            # Check if we have a training dataset
-            if os.path.exists(self.training_data_path):
-                self._log("Training a new model using available data...")
-                try:
-                    # Load training data
-                    training_data = self.load_training_data()
-                    if not training_data:
-                        self._log("No training data available")
-                        return False
-                    
-                    # Extract speeches, scores, and topics
-                    speeches = [item['speech'] for item in training_data]
-                    scores = [item['score'] for item in training_data]
-                    
-                    # Try training with topics first
-                    try:
-                        if all('topic' in item for item in training_data):
-                            topics = [item['topic'] for item in training_data]
-                            self._log(f"Training model with {len(speeches)} speeches and {len(set(topics))} topics...")
-                            evaluation_model.train(speeches, scores, topics)
-                            self._log("Model trained successfully with topic information")
-                        else:
-                            # Train without topics
-                            evaluation_model.train(speeches, scores)
-                            self._log("Model trained successfully without topics")
-                        
-                        # Save the model
-                        try:
-                            evaluation_model.save_model(self.model_path)
-                            self._log(f"Saved model to {self.model_path}")
-                            return True
-                        except (ValueError, IOError) as e:
-                            self._log(f"Error saving model: {e}")
-                            return False
-                    except Exception as e:
-                        self._log(f"Error training model: {e}")
-                        return False
-                except Exception as e:
-                    self._log(f"Error loading training data: {e}")
-                    return False
-            else:
-                self._log(f"No training data found at {self.training_data_path}")
-                return False
+            evaluation_model.load_model(self.model_path)
+            self._log(f"Loaded model from {self.model_path}")
+            return True
         except Exception as e:
-            self._log(f"Unexpected error during model training: {e}")
-            return False
-    
+            error_msg = f"Error loading model: {e}"
+            self._log(error_msg)
+            raise ValueError(error_msg)
+
     def evaluate_speech(self, speech: str, topic: str = None, safe_mode: bool = False) -> Dict:
         """
         Evaluate a speech and generate feedback.
@@ -164,65 +109,7 @@ class SpeechEvaluator:
             if "features" in error_message and "expecting" in error_message:
                 error_message += " (Try a different topic, leave the topic field empty, or enable safe mode)"
                 
-            raise ValueError(error_message)
-    
-    def train_model(self, speeches: List[str], scores: List[float], topics: List[str] = None) -> bool:
-        """
-        Train the evaluation model with new data.
-        
-        Args:
-            speeches (List[str]): List of speech texts
-            scores (List[float]): List of scores (1-10)
-            topics (List[str], optional): List of topics
-            
-        Returns:
-            bool: True if training was successful, False otherwise
-        """
-        if len(speeches) != len(scores):
-            raise ValueError("Number of speeches must match number of scores")
-            
-        if len(speeches) < 3:
-            raise ValueError("Need at least 3 speech samples for training")
-        
-        try:
-            # Train the model
-            if topics and len(topics) == len(speeches):
-                self._log(f"Training model with {len(speeches)} speeches and topics...")
-                evaluation_model.train(speeches, scores, topics)
-            else:
-                self._log(f"Training model with {len(speeches)} speeches (no topics)...")
-                evaluation_model.train(speeches, scores)
-            
-            # Save the model
-            try:
-                evaluation_model.save_model(self.model_path)
-                self._log(f"Saved model to {self.model_path}")
-                return True
-            except (ValueError, IOError) as e:
-                self._log(f"Error saving model: {e}")
-                return False
-        except Exception as e:
-            self._log(f"Error training model: {e}")
-            return False
-    
-    def save_training_data(self, data: List[Dict]) -> bool:
-        """
-        Save training data to a JSON file.
-        
-        Args:
-            data (List[Dict]): List of training data items
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        try:
-            with open(self.training_data_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2)
-            self._log(f"Training data saved to {self.training_data_path}")
-            return True
-        except Exception as e:
-            self._log(f"Error saving training data: {e}")
-            return False
+            raise ValueError(error_message)    
     
     def load_training_data(self) -> List[Dict]:
         """
@@ -241,41 +128,6 @@ class SpeechEvaluator:
             self._log(f"Error loading training data: {e}")
             return []
     
-    def add_training_sample(self, speech: str, score: float, topic: str = None) -> bool:
-        """
-        Add a new training sample to the dataset.
-        
-        Args:
-            speech (str): Speech text
-            score (float): Score (1-10)
-            topic (str, optional): Speech topic
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        if not speech:
-            raise ValueError("Speech text cannot be empty")
-            
-        try:
-            score = float(score)
-            if not (1 <= score <= 10):
-                raise ValueError("Score must be between 1 and 10")
-        except (ValueError, TypeError):
-            raise ValueError("Invalid score format")
-        
-        # Load existing data
-        training_data = self.load_training_data()
-        
-        # Add new item
-        training_data.append({
-            'speech': speech,
-            'score': score,
-            'topic': topic
-        })
-        
-        # Save updated data
-        return self.save_training_data(training_data)
-    
     def get_topics(self) -> List[str]:
         """
         Get list of unique topics from training data.
@@ -283,16 +135,8 @@ class SpeechEvaluator:
         Returns:
             List[str]: List of topics
         """
-        # Print debug information
-        print(f"Looking for training data at: {self.training_data_path}")
-        print(f"File exists: {os.path.exists(self.training_data_path)}")
-        
         data = self.load_training_data()
-        print(f"Loaded {len(data)} training samples")
-        
         topics = sorted(list(set(item.get('topic', '') for item in data if item.get('topic'))))
-        print(f"Found {len(topics)} unique topics")
-        
         return topics
 
 # Create a global instance for shared access
