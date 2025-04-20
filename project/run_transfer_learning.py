@@ -6,6 +6,22 @@ import time
 import shutil
 import sys
 import nltk
+import torch
+import numpy as np
+import random
+
+# Force use of GPU
+os.environ["HIP_VISIBLE_DEVICES"] = "0"  # For AMD GPU
+os.environ["PYTORCH_HIP_ALLOC_CONF"] = "max_split_size_mb:512"
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()  # Clear GPU memory
+
+# Set fixed seed for reproducibility 
+random.seed(42)
+np.random.seed(42)
+torch.manual_seed(42)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(42)
 
 nltk.download('punkt_tab')
 

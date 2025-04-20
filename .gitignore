@@ -6,3 +6,5 @@ project/.webenv/*
 *.whl
 *.safetensors
 project/uploads/*
+*.deb
+TRAINING.md

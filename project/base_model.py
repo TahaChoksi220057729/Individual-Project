@@ -9,10 +9,24 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from data_processor import DataProcessor
 
+# Force use of GPU
+os.environ["HIP_VISIBLE_DEVICES"] = "0"  # For AMD GPU
+os.environ["PYTORCH_HIP_ALLOC_CONF"] = "max_split_size_mb:512"
+torch.cuda.empty_cache()  # Clear GPU memory
+
+# Set fixed seed for reproducibility 
+np.random.seed(42)
+torch.manual_seed(42)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(42)
+
 # Set device with better AMD GPU support
 device = torch.device('cuda' if torch.cuda.is_available() else 
-                     ('rocm' if hasattr(torch, 'is_hip_available') and torch.is_hip_available() else 'cpu'))
+                     ('cuda' if hasattr(torch, 'is_hip_available') and torch.is_hip_available() else 'cpu'))
 print(f"Using device: {device}")
+if device.type == 'cuda' and torch.cuda.is_available():
+    print(f"GPU Name: {torch.cuda.get_device_name(0)}")
+    print(f"Memory Allocated: {torch.cuda.memory_allocated(0) / 1024**2:.2f} MB")
 
 class BaseModel:
     """
