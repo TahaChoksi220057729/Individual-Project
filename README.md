@@ -75,7 +75,7 @@ pip install praat-parselmouth>=0.4.3
 # Windows: 
 # 1. Download from https://ffmpeg.org/download.html
 # 2. Extract the downloaded archive
-# 3. Add the bin folder to your system PATH or specify the path in voice_analyzer.py
+# 3. Add the bin folder to your system PATH or specify the path in voice_analyser.py
 
 # Linux:
 # sudo apt update && sudo apt install ffmpeg
