@@ -1,15 +1,5 @@
 # Configure FFmpeg path
 import os
-
-# Set path to your FFmpeg installation
-FFMPEG_PATH = r"C:\Users\Decay\Downloads\ffmpeg-2025-04-17-git-7684243fbe-full_build\bin"
-
-# Add FFmpeg to system PATH
-if FFMPEG_PATH not in os.environ["PATH"]:
-    os.environ["PATH"] += os.pathsep + FFMPEG_PATH
-
-print(f"FFmpeg configured at: {FFMPEG_PATH}")
-
 import numpy as np
 import librosa
 import speech_recognition as sr
@@ -55,13 +45,13 @@ class VoiceAnalyser:
         """Initialise the voice analyser with necessary resources."""
         self.recognizer = sr.Recognizer()
         
-    def process_audio_file(self, audio_file_path: str) -> Dict:
+    def process_audio_file(self, audio_file_path: str, path_to_ffmpeg: str) -> Dict:
         """
         Process an audio file and extract various speech metrics.
         
         Args:
             audio_file_path: Path to the audio file
-            
+            path_to_ffmpeg: Path to FFMPEG
         Returns:
             Dict: Dictionary containing speech analysis results
         """
@@ -83,8 +73,9 @@ class VoiceAnalyser:
             if file_extension.lower() not in ['.wav']:
                 try:
                     # Set FFmpeg path explicitly
-                    ffmpeg_path = r"C:\Users\Decay\Downloads\ffmpeg-2025-04-17-git-7684243fbe-full_build\bin\ffmpeg"  # Change this to your actual path
-                    AudioSegment.converter = ffmpeg_path
+                    #ffmpeg_path = r"C:\Users\Decay\Downloads\ffmpeg-2025-04-17-git-7684243fbe-full_build\bin\ffmpeg"  # Change this to your actual path
+                    print("FFMPEGd: ",path_to_ffmpeg)
+                    AudioSegment.converter = path_to_ffmpeg
                     
                     # Create temp file
                     temp_fd, temp_wav_path = tempfile.mkstemp(suffix='.wav')
@@ -794,7 +785,7 @@ class VoiceAnalyser:
         return weighted_sum / total_weight if total_weight > 0 else 5.0
 
 # Create a helper function to handle file uploads
-def process_audio_file(file_path: str) -> Dict:
+def process_audio_file(file_path: str, path_to_ffmpeg: str) -> Dict:
     """
     Process an audio file and return analysis results.
     
@@ -805,4 +796,4 @@ def process_audio_file(file_path: str) -> Dict:
         Dict: Analysis results
     """
     analyser = VoiceAnalyser()
-    return analyser.process_audio_file(file_path) 
+    return analyser.process_audio_file(file_path, path_to_ffmpeg) 
