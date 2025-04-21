@@ -80,10 +80,7 @@ class TransferModel:
         )
         
         # Prepare optimiser and scheduler
-        # Using different learning rates for different layers
-        # This is a common technique for fine-tuning
-        # We'll use a lower learning rate for the base model's parameters
-        # and a higher learning rate for the newly added classifier layers
+        # Using different learning rates for different layers -- Lower learning rate for General Dataset, higher learning rate for Tuning Dataset
         
         # Parameters from the base model
         param_optimiser = list(self.model.named_parameters())

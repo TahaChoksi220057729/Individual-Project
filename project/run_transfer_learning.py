@@ -25,7 +25,6 @@ if torch.cuda.is_available():
 
 nltk.download('punkt_tab')
 
-# Get the current Python executable path for subprocess calls
 PYTHON_EXECUTABLE = sys.executable
 print(f"Using Python executable: {PYTHON_EXECUTABLE}")
 

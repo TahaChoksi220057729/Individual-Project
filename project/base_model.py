@@ -20,7 +20,6 @@ torch.manual_seed(42)
 if torch.cuda.is_available():
     torch.cuda.manual_seed_all(42)
 
-# Set device with better AMD GPU support
 device = torch.device('cuda' if torch.cuda.is_available() else 
                      ('cuda' if hasattr(torch, 'is_hip_available') and torch.is_hip_available() else 'cpu'))
 print(f"Using device: {device}")

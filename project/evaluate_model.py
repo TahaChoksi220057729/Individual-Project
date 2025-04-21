@@ -297,7 +297,7 @@ def plot_metrics_comparison(base_results, transfer_results, output_dir):
     plt.savefig(os.path.join(output_dir, 'metrics_comparison.png'))
     plt.close()
     
-    # R^2 comparison (separate because higher is better)
+    # R^2 comparison (separate because higher is better; <1)
     plt.figure(figsize=(8, 5))
     
     r2_values = [base_results['r2'], transfer_results['r2']]

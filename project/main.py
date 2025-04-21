@@ -18,7 +18,7 @@ os.environ['FLASK_ENV'] = 'production'
 
 from flask import Flask, request, jsonify, render_template, url_for, redirect, send_from_directory
 from speech_evaluator import SpeechEvaluator
-from voice_analyzer import process_audio_file
+from voice_analyser import process_audio_file
 import tempfile
 import uuid
 import werkzeug.utils
@@ -161,8 +161,6 @@ def debug_topics():
         'topics_count': len(topics),
         'topics': topics
     })
-
-# New routes for voice analysis
 
 @app.route('/voice', methods=['GET'])
 def voice_analysis_page():

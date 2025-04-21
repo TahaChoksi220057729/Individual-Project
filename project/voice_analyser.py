@@ -156,7 +156,7 @@ class VoiceAnalyser:
             # Try to open as wav file with speech_recognition
             with sr.AudioFile(audio_file_path) as source:
                 audio_data = self.recognizer.record(source)
-                text = self.recognizer.recognize_google(audio_data, language="en-GB")
+                text = self.recognizer.recognize_google(audio_data)
                 return text
         except FileNotFoundError as e:
             print(f"Error transcribing audio: {e}")
@@ -179,7 +179,7 @@ class VoiceAnalyser:
                     # Try transcribing again
                     with sr.AudioFile(temp_wav_path) as source:
                         audio_data = self.recognizer.record(source)
-                        text = self.recognizer.recognize_google(audio_data, language="en-GB")
+                        text = self.recognizer.recognize_google(audio_data)
                         
                     # Clean up
                     os.remove(temp_wav_path)
