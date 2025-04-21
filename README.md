@@ -24,7 +24,7 @@ Individual-Project/
 │   │   └── js/               # JavaScript files
 │   ├── uploads/              # Directory for uploaded audio files
 │   ├── output/               # Analysis output files
-│   ├── voice_analyser.py     # Voice analysis functionality
+│   ├── voice_analyzer.py     # Voice analysis functionality
 │   ├── text_processor.py     # Text processing functionality
 │   ├── speech_evaluator.py   # Main speech evaluation logic
 │   ├── evaluation.py         # Evaluation metrics and scoring
@@ -50,42 +50,20 @@ Individual-Project/
 git clone https://github.com/yourusername/Individual-Project.git
 cd Individual-Project
 
-# Create and activate a virtual environment (recommended)
-# Windows
-python -m venv .venv
-.venv\Scripts\activate
-
-#Linux
-source .venv/bin/activate
-
-# Install dependencies
-cd project
-pip install -r requirements.txt
-
-# If pip install fails due to dependency conflicts, install packages individually
-# The following versions are confirmed to work:
-pip install torch>=1.9.0 transformers>=4.12.0 numpy>=1.20.0 pandas>=1.3.0
-pip install scikit-learn>=0.24.0 tqdm>=4.62.0 matplotlib>=3.4.0 nltk>=3.6.0
-pip install flask==2.3.3 joblib==1.3.2 spacy==3.6.1 tabulate==0.9.0
-pip install librosa>=0.10.0 SpeechRecognition>=3.10.0 pydub>=0.25.1
-pip install textstat>=0.7.3 ffmpeg-python>=0.2.0 soundfile>=0.12.1
-pip install praat-parselmouth>=0.4.3
-
 # Install FFmpeg (required for voice analysis)
 # Windows: 
-# 1. Download from https://ffmpeg.org/download.html
+# 1. Download from https://www.gyan.dev/ffmpeg/builds/
+# 2. Download the ffmpeg-git-full.7z version of FFMPEG
 # 2. Extract the downloaded archive
-# 3. Add the bin folder to your system PATH or specify the path in voice_analyser.py
+# 3. Add the bin folder to your system PATH
 
 # Linux:
 # sudo apt update && sudo apt install ffmpeg
 
-# Download NLTK resources (if not downloaded automatically)
-python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')"
+# Run the setup.py file
+# ./setup.py
 
-# Download spaCy model
-python -m spacy download en_core_web_sm
-```
+# This file will create a virtual environment and install all dependencies and locate your FFMPEG download and pass it as a Variable to the project.
 
 ### Requirements
 
