@@ -69,40 +69,48 @@
         }
 
         .nav-links {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
             display: flex;
-            gap: 0.5rem;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem auto 0;
+            width: fit-content;
+            padding: 0.6rem 1rem;
             background-color: var(--card-bg);
-            border-radius: 8px;
-            padding: 0.3rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 10;
+            border: 2px solid var(--secondary-color);
         }
         
         .nav-link {
             color: var(--text-color);
             text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
             transition: all 0.3s ease;
-            font-weight: 500;
+            font-weight: 600;
             display: flex;
             align-items: center;
+            border: 2px solid transparent;
         }
         
         .nav-link i {
-            margin-right: 0.5rem;
+            margin-right: 0.6rem;
+            font-size: 1.1rem;
         }
         
         .nav-link:hover {
             background-color: var(--secondary-color);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .nav-link.active {
             background-color: var(--accent-color);
             color: white;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 4px 10px rgba(74, 158, 255, 0.3);
         }
 
         .header h1 {
@@ -384,12 +392,13 @@
 
     <div class="container">
         <div class="header">
+            <h1><i class="fas fa-comment-dots"></i> MUN Speech Evaluator</h1>
+            <p>An AI-powered Model United Nations speech evaluation platform for improving delegate skills and conference performance</p>
+            <hr style="width: 70%; margin: 1.5rem auto; border-color: var(--secondary-color); opacity: 0.5;">
             <div class="nav-links">
                 <a href="/" class="nav-link active" aria-current="page"><i class="fas fa-file-alt"></i> Text Analysis</a>
                 <a href="/voice" class="nav-link"><i class="fas fa-microphone-alt"></i> Voice Analysis</a>
             </div>
-            <h1><i class="fas fa-comment-dots"></i> MUN Speech Evaluator</h1>
-            <p>An AI-powered Model United Nations speech evaluation platform for improving delegate skills and conference performance</p>
         </div>
 
         <div class="row">
@@ -417,7 +426,7 @@
                             </div>
                             <button type="submit" class="btn btn-primary" id="evaluate-btn">
                                 <span class="spinner-border spinner-border-sm d-none" id="loading-spinner" role="status" aria-hidden="true"></span>
-                                Evaluate
+                                <i class="fas fa-chart-line"></i> Analyse
                             </button>
                         </form>
                     </div>
@@ -491,8 +500,8 @@
                                         <ul id="countries-list" class="entity-list ps-0"></ul>
                                     </div>
                                     <div class="col-md-6 entity-section">
-                                        <h6>Organizations</h6>
-                                        <ul id="organizations-list" class="entity-list ps-0"></ul>
+                                        <h6>Organisations</h6>
+                                        <ul id="organisations-list" class="entity-list ps-0"></ul>
                                     </div>
                                 </div>
                                 <div class="row mt-3">
@@ -707,7 +716,7 @@
                 // Create content statistics display
                 const contentStats = [
                     `${countEntities(feedback.key_entities, 'Countries')} countries`, 
-                    `${countEntities(feedback.key_entities, 'Organisations')} organizations`, 
+                    `${countEntities(feedback.key_entities, 'Organisations')} organisations`, 
                     `${countEntities(feedback.key_entities, 'Policies')} policies`,
                     `${countEntities(feedback.key_entities, 'Quantities') || 0} quantities`
                 ].join(', ');
@@ -752,7 +761,7 @@
                 
                 // Update entities lists
                 populateEntityList('countries-list', feedback.key_entities.Countries || []);
-                populateEntityList('organizations-list', feedback.key_entities.Organisations || []);
+                populateEntityList('organisations-list', feedback.key_entities.Organisations || []);
                 populateEntityList('policies-list', feedback.key_entities.Policies || []);
                 populateEntityList('concepts-list', feedback.key_entities["Key Concepts"] || []);
                 

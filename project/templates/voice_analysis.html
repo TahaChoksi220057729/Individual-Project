@@ -9,20 +9,48 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/css/styles.css">
     <style>
+        :root[data-theme="light"] {
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --card-bg: #fff;
+            --card-border: rgba(0, 0, 0, 0.125);
+            --suggestion-bg: #f1f8ff;
+            --header-color: #2c3e50;
+            --feedback-bg: #f8f9fa;
+            --accent-color: #4a9eff;
+            --secondary-color: #e7f3ff;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --card-bg: #2d2d2d;
+            --card-border: rgba(255, 255, 255, 0.125);
+            --suggestion-bg: #2c3e50;
+            --header-color: #e0e0e0;
+            --feedback-bg: #2d2d2d;
+            --accent-color: #4a9eff;
+            --secondary-color: #1e3a5f;
+        }
+
         body {
             padding-top: 20px;
             padding-bottom: 40px;
-            background-color: #f8f9fa;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         .card {
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
         }
         .recorder-container {
             text-align: center;
             padding: 30px 15px;
-            background-color: #f1f3f5;
+            background-color: var(--secondary-color);
             border-radius: 8px;
             margin-bottom: 20px;
         }
@@ -30,6 +58,7 @@
             font-size: 1.5rem;
             margin: 10px 0;
             font-family: monospace;
+            color: var(--text-color);
         }
         .record-button {
             width: 60px;
@@ -65,9 +94,12 @@
         }
         .metric-card {
             transition: transform 0.2s;
+            background-color: var(--card-bg);
+            border-color: var(--card-border);
         }
         .metric-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
         }
         .score-circle {
             width: 60px;
@@ -99,6 +131,173 @@
             height: 100%;
             cursor: pointer;
         }
+        
+        /* Navigation link styles */
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem auto 0;
+            width: fit-content;
+            padding: 0.6rem 1rem;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 10;
+            border: 2px solid var(--secondary-color);
+        }
+        
+        .nav-link {
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            border: 2px solid transparent;
+        }
+        
+        .nav-link i {
+            margin-right: 0.6rem;
+            font-size: 1.1rem;
+        }
+        
+        .nav-link:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link.active {
+            background-color: var(--accent-color);
+            color: white;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 4px 10px rgba(74, 158, 255, 0.3);
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            padding: 0.75rem;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            border: 2px solid var(--accent-color);
+            background-color: var(--card-bg);
+            color: var(--accent-color);
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        .theme-toggle .theme-icon {
+            font-size: 1.2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--header-color);
+            padding-bottom: 1rem;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--accent-color);
+            display: inline-block;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            color: var(--text-color);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tab-content p-3 {
+            color: var(--text-color);
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--text-color);
+        }
+        
+        .nav-tabs .nav-link.active {
+            background-color: var(--card-bg);
+            color: var(--accent-color);
+            border-color: var(--card-border);
+            border-bottom-color: var(--card-bg);
+        }
+        
+        .form-select, .form-control, .form-check-label {
+            color: var(--text-color);
+            background-color: var(--card-bg);
+            border-color: var(--card-border);
+        }
+        
+        .form-select:focus, .form-control:focus {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(74, 158, 255, 0.15);
+        }
+        
+        .text-muted {
+            color: var(--text-color) !important;
+            opacity: 0.7;
+        }
+        
+        .bg-light {
+            background-color: var(--secondary-color) !important;
+            color: var(--text-color);
+        }
+
+        .list-group-item {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--card-border);
+        }
+        
+        .card-header {
+            background-color: var(--secondary-color);
+            border-color: var(--card-border);
+            color: var(--text-color);
+        }
+        
+        .metric-tooltip {
+            padding: 10px;
+            margin-top: 10px;
+            background-color: var(--secondary-color);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--text-color);
+        }
+
+        audio::-webkit-media-controls-panel {
+            background-color: var(--secondary-color);
+        }
+        
+        audio::-webkit-media-controls-current-time-display,
+        audio::-webkit-media-controls-time-remaining-display {
+            color: var(--text-color);
+        }
     </style>
 </head>
 <body>
@@ -108,12 +307,13 @@
 
     <div class="container">
         <div class="header">
-            <div class="nav-links">
-                <a href="/" class="nav-link">Text Analysis</a>
-                <a href="/voice" class="nav-link">Voice Analysis</a>
-            </div>
             <h1><i class="fas fa-microphone-alt"></i> Voice Analysis</h1>
             <p>Record or upload your speech for comprehensive voice analysis and feedback</p>
+            <hr style="width: 70%; margin: 1.5rem auto; border-color: var(--secondary-color); opacity: 0.5;">
+            <div class="nav-links">
+                <a href="/" class="nav-link"><i class="fas fa-file-alt"></i> Text Analysis</a>
+                <a href="/voice" class="nav-link active" aria-current="page"><i class="fas fa-microphone-alt"></i> Voice Analysis</a>
+            </div>
         </div>
 
         <div class="row">
@@ -249,7 +449,7 @@
                                     </div>
                                 </div>
                                 <div class="tab-pane fade" id="transcript" role="tabpanel">
-                                    <div class="p-3 bg-light rounded">
+                                    <div class="p-3 rounded" style="background-color: var(--secondary-color);">
                                         <h6>Transcribed Speech:</h6>
                                         <p id="transcriptText" class="mt-3"></p>
                                     </div>
