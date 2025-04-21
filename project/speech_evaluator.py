@@ -139,5 +139,5 @@ class SpeechEvaluator:
         topics = sorted(list(set(item.get('topic', '') for item in data if item.get('topic'))))
         return topics
 
-# Create a global instance for shared access
+# Allow global access to this class
 speech_evaluator = SpeechEvaluator() 

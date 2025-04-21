@@ -35,7 +35,7 @@ class BaseModel:
     
     def __init__(self, model_name='bert-base-uncased', output_dir='models'):
         """
-        Initialize the base model.
+        Initialise the base model.
         
         Args:
             model_name (str): Name of the pre-trained model to use
@@ -47,13 +47,13 @@ class BaseModel:
         # Create output directory if it doesn't exist
         os.makedirs(output_dir, exist_ok=True)
         
-        # Initialize model
+        # Initialise model
         self.model = AutoModelForSequenceClassification.from_pretrained(
             model_name, num_labels=1
         )
         self.model.to(device)
         
-        # Initialize data processor
+        # Initialise data processor
         self.processor = DataProcessor(max_length=512)
         
     def train(self, train_dataset, val_dataset, batch_size=8, epochs=3, 
@@ -80,8 +80,8 @@ class BaseModel:
             val_dataset, batch_size=batch_size, shuffle=False
         )
         
-        # Prepare optimizer and scheduler
-        optimizer = AdamW(
+        # Prepare optimiser and scheduler
+        optimiser = AdamW(
             self.model.parameters(),
             lr=learning_rate,
             weight_decay=0.01
@@ -89,7 +89,7 @@ class BaseModel:
         
         total_steps = len(train_dataloader) * epochs
         scheduler = get_linear_schedule_with_warmup(
-            optimizer,
+            optimiser,
             num_warmup_steps=warmup_steps,
             num_training_steps=total_steps
         )
@@ -116,7 +116,7 @@ class BaseModel:
                 batch = {k: v.to(device) for k, v in batch.items()}
                 
                 # Zero gradients
-                optimizer.zero_grad()
+                optimiser.zero_grad()
                 
                 # Forward pass
                 outputs = self.model(**batch)
@@ -126,7 +126,7 @@ class BaseModel:
                 loss.backward()
                 
                 # Update weights
-                optimizer.step()
+                optimiser.step()
                 scheduler.step()
                 
                 # Update progress bar
@@ -237,7 +237,7 @@ def main():
     
     args = parser.parse_args()
     
-    # Initialize processor and load data
+    # Initialise processor and load data
     processor = DataProcessor(max_length=args.max_length)
     un_df = processor.load_un_debates(args.data_path)
     
@@ -248,7 +248,7 @@ def main():
     train_dataset = processor.create_torch_dataset(un_train)
     val_dataset = processor.create_torch_dataset(un_val)
     
-    # Initialize and train model
+    # Initialise and train model
     base_model = BaseModel(model_name=args.model_name, output_dir=args.output_dir)
     base_model.train(
         train_dataset,

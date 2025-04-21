@@ -17,7 +17,7 @@ class AudioRecorder {
     }
 
     /**
-     * Request microphone access and initialize the recorder
+     * Request microphone access and initialise the recorder
      */
     async initialize() {
         try {
@@ -72,7 +72,7 @@ class AudioRecorder {
             
             return true;
         } catch (error) {
-            console.error('Error initializing audio recorder:', error);
+            console.error('Error initialising audio recorder:', error);
             return false;
         }
     }

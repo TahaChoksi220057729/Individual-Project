@@ -11,7 +11,7 @@ from feature_extraction import feature_extractor
 class SpeechEvaluationModel:
     """  
     This class handles model loading and prediction for evaluating MUN speeches.
-    Requires a pre-trained model to function.
+    Requires a pre-trained model to function. --> Available in the ./output/models/mun_transfer/model.safetensors 
     """
     
     def __init__(self):
@@ -20,6 +20,7 @@ class SpeechEvaluationModel:
         self.vectoriser = None
         self.feature_names = None
         self.processor = DataProcessor(max_length=512)
+        # My graphics care does not support cuda and thus requires rocm support - this required an ubuntu operating system to work thus if your graphics card is rocm supporting it may be difficult to train a model locally.        
         self.device = torch.device('cuda' if torch.cuda.is_available() else 
                                  ('rocm' if hasattr(torch, 'is_hip_available') and torch.is_hip_available() else 'cpu'))
         self.trained = False
@@ -115,5 +116,5 @@ class SpeechEvaluationModel:
             self.trained = False
             raise ValueError(f"Error loading model: {str(e)}")
 
-# Create a global instance for shared access
+# Allow global access to this class
 evaluation_model = SpeechEvaluationModel()

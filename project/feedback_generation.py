@@ -202,5 +202,5 @@ class FeedbackGenerator:
         
         return suggestions
     
-# Create a global instance for shared access
+# Allow global access to this class
 feedback_generator = FeedbackGenerator() 

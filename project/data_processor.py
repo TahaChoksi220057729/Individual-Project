@@ -16,18 +16,18 @@ nltk.download('punkt', quiet=True)
 class DataProcessor:
     """
     Class to handle data processing for both the general UN debates dataset
-    and the specialized MUN speech dataset.
+    and the specialised MUN speech dataset.
     """
     
     def __init__(self, max_length=512):
         """
-        Initialize the data processor.
+        Initialise the data processor.
         
         Args:
-            max_length (int): Maximum sequence length for tokenization
+            max_length (int): Maximum sequence length for tokenisation
         """
         self.max_length = max_length
-        self.tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
+        self.tokeniser = AutoTokenizer.from_pretrained('bert-base-uncased')
         self.topic_encoder = LabelEncoder()
         
     def load_un_debates(self, file_path):
@@ -95,7 +95,7 @@ class DataProcessor:
         Returns:
             pd.DataFrame: Processed dataframe
         """
-        # Select relevant columns (adjust based on your actual CSV structure)
+        # Select relevant columns
         if 'text' in df.columns:
             df = df[['text', 'country', 'year', 'session']]
         elif 'content' in df.columns:
@@ -104,12 +104,11 @@ class DataProcessor:
         # Remove rows with empty text
         df = df.dropna(subset=['text'])
         
-        # Extract features that might be useful for scoring
+        # Extract features for scoring
         df['word_count'] = df['text'].apply(lambda x: len(word_tokenize(x)))
         df['sentence_count'] = df['text'].apply(lambda x: len(sent_tokenize(x)))
         
-        # Generate a pseudo-score for training (you might need to adjust this)
-        # This is just a placeholder - ideally you'd have some scoring metric
+        # Generate a pseudo-score for training; in a real world working product would chnage this to an actual score however due to the nature of this project this is good enough 
         df['score'] = df.apply(self._generate_pseudo_score, axis=1)
         
         return df
@@ -140,13 +139,12 @@ class DataProcessor:
         lexical_diversity = len(set(words)) / max(1, len(words))
         
         # Generate a score between 1 and 10
-        # This formula is arbitrary and should be replaced with something
-        # more suitable for your specific application
+        # This formula is arbitrary and does not really produce a good scoring value, however it is good enough due the long winded nature of having to lable the features of each data point in the dataset...
         score = (
             5.0  # Base score
             + min(2.0, word_count / 1000)  # Reward longer speeches up to a point
             + min(1.0, lexical_diversity * 5)  # Reward lexical diversity
-            - abs(avg_sentence_length - 20) / 10  # Penalize very short or very long sentences
+            - abs(avg_sentence_length - 20) / 10  # Penalise very short or very long sentences
         )
         
         # Clip score to valid range
@@ -165,7 +163,7 @@ class DataProcessor:
         Returns:
             tuple: (un_train, un_val, mun_train, mun_val, mun_test)
         """
-        # Initialize variables
+        # Initialise variables
         un_train = un_val = mun_train = mun_val = mun_test = None
         
         # Split UN debates into train and validation if available
@@ -213,17 +211,17 @@ class DataProcessor:
             
         return df
     
-    def tokenize_text(self, texts):
+    def tokenise_text(self, texts):
         """
-        Tokenize texts using the BERT tokenizer.
+        Tokenise texts using the BERT tokeniser.
         
         Args:
             texts (list): List of text strings
             
         Returns:
-            dict: Tokenized inputs for the model
+            dict: Tokenised inputs for the model
         """
-        return self.tokenizer(
+        return self.tokeniser(
             texts,
             padding='max_length',
             truncation=True,
@@ -241,7 +239,7 @@ class DataProcessor:
         Returns:
             SpeechDataset: PyTorch dataset
         """
-        encodings = self.tokenize_text(df['text'].tolist())
+        encodings = self.tokenise_text(df['text'].tolist())
         scores = df['score'].values.astype(np.float32)
         
         return SpeechDataset(encodings, scores)
@@ -257,8 +255,8 @@ class DataProcessor:
         Returns:
             SpeechDataset: Processed dataset
         """
-        # Tokenize the speeches
-        encodings = self.tokenizer(
+        # Tokenise the speeches
+        encodings = self.tokeniser(
             speeches,
             truncation=True,
             padding=True,
@@ -317,25 +315,5 @@ class SpeechDataset(torch.utils.data.Dataset):
         """
         return len(self.scores)
 
-
 if __name__ == "__main__":
-    # Example usage
-    processor = DataProcessor()
-    
-    # Test loading UN debates
-    try:
-        un_df = processor.load_un_debates("un_general_debates.csv")
-        print(f"Loaded UN debates: {len(un_df)} speeches")
-        print(f"UN debates columns: {un_df.columns.tolist()}")
-        print(f"UN debates example:\n{un_df.iloc[0]}")
-    except Exception as e:
-        print(f"Error loading UN debates: {e}")
-    
-    # Test loading MUN speeches
-    try:
-        mun_df = processor.load_mun_speeches("training_data.json")
-        print(f"Loaded MUN speeches: {len(mun_df)} speeches")
-        print(f"MUN speeches columns: {mun_df.columns.tolist()}")
-        print(f"MUN speeches example:\n{mun_df.iloc[0]}")
-    except Exception as e:
-        print(f"Error loading MUN speeches: {e}") 
+    main()

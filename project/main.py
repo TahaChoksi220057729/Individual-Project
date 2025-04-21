@@ -23,7 +23,7 @@ import tempfile
 import uuid
 import werkzeug.utils
 
-# Initialize speech evaluator
+# Initialise speech evaluator
 speech_evaluator = SpeechEvaluator()
 
 # Initialise Flask app
@@ -41,7 +41,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
 # Helper function for error handling
 def handle_error(e, status_code=400):
     """
-    Standardized error handling for API endpoints.
+    Standardised error handling for API endpoints.
     
     Args:
         e (Exception): The exception that occurred
@@ -285,7 +285,7 @@ if __name__ == '__main__':
     # Determine port for running the app
     port = int(os.environ.get('PORT', 5000))
     
-    # Minimize console output
+    # Minimise console output
     import logging
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)

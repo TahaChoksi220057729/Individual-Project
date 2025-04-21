@@ -119,7 +119,7 @@ def main():
     parser.add_argument('--transfer_lr', type=float, default=1e-5,
                         help='Learning rate for transfer model training')
     parser.add_argument('--max_length', type=int, default=512,
-                        help='Maximum sequence length for tokenization')
+                        help='Maximum sequence length for tokenisation')
     parser.add_argument('--clean', action='store_true',
                         help='Clean output directories before running')
     parser.add_argument('--skip_base', action='store_true',

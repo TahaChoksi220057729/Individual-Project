@@ -184,7 +184,7 @@ def plot_predictions_comparison(base_preds, transfer_preds, ground_truth, output
     """
     plt.figure(figsize=(12, 8))
     
-    # Sort by ground truth for better visualization
+    # Sort by ground truth for better visualisation
     indices = np.argsort(ground_truth)
     sorted_truth = np.array(ground_truth)[indices]
     sorted_base_preds = np.array(base_preds)[indices]
@@ -263,31 +263,31 @@ def plot_metrics_comparison(base_results, transfer_results, output_dir):
     base_values = [base_results[m] for m in metrics]
     transfer_values = [transfer_results[m] for m in metrics]
     
-    # Normalize values for better visualization
+    # Normalise values for better visualisation
     max_values = np.maximum(base_values, transfer_values)
-    base_normalized = np.array(base_values) / max_values
-    transfer_normalized = np.array(transfer_values) / max_values
+    base_normalised = np.array(base_values) / max_values
+    transfer_normalised = np.array(transfer_values) / max_values
     
     plt.figure(figsize=(10, 6))
     
     x = np.arange(len(metrics))
     width = 0.35
     
-    plt.bar(x - width/2, base_normalized, width, label='Base Model')
-    plt.bar(x + width/2, transfer_normalized, width, label='Transfer Model')
+    plt.bar(x - width/2, base_normalised, width, label='Base Model')
+    plt.bar(x + width/2, transfer_normalised, width, label='Transfer Model')
     
     plt.xlabel('Metric')
-    plt.ylabel('Normalized Value (lower is better)')
+    plt.ylabel('Normalised Value (lower is better)')
     plt.title('Model Performance Comparison')
     plt.xticks(x, ['MSE', 'RMSE', 'MAE'])
     
     # Add value labels
     for i, v in enumerate(base_values):
-        plt.text(i - width/2, base_normalized[i] + 0.05, f'{v:.4f}', 
+        plt.text(i - width/2, base_normalised[i] + 0.05, f'{v:.4f}', 
                 ha='center', va='bottom', fontsize=9)
     
     for i, v in enumerate(transfer_values):
-        plt.text(i + width/2, transfer_normalized[i] + 0.05, f'{v:.4f}', 
+        plt.text(i + width/2, transfer_normalised[i] + 0.05, f'{v:.4f}', 
                 ha='center', va='bottom', fontsize=9)
     
     plt.legend()
@@ -305,7 +305,7 @@ def plot_metrics_comparison(base_results, transfer_results, output_dir):
     plt.bar(['Base Model', 'Transfer Model'], r2_values, color=['#1f77b4', '#ff7f0e'])
     
     plt.xlabel('Model')
-    plt.ylabel('R² Score (higher is better)')
+    plt.ylabel('R² Score (higher is better; <1)')
     plt.title('R² Score Comparison')
     
     # Add value labels
@@ -338,7 +338,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
     
-    # Initialize processor and load data
+    # Initialise processor and load data
     processor = DataProcessor(max_length=args.max_length)
     mun_df = processor.load_mun_speeches(args.mun_data_path)
     

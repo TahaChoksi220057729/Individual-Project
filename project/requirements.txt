@@ -13,8 +13,7 @@ flask==2.3.3
 tabulate==0.9.0
 librosa>=0.10.0
 SpeechRecognition>=3.10.0
-praat-parselmouth>=0.4.3source .uvenv/bin/activate
-bash: .uvenv/bin/activate: No such file or directory
+praat-parselmouth>=0.4.3source 
 pydub>=0.25.1
 textstat>=0.7.3
 ffmpeg-python>=0.2.0  

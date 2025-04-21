@@ -8,13 +8,35 @@ Final project for BSc Computer Science - AI analysis of MUN delegate speeches
 - **Entity Recognition** - Identifies countries, organisations, and policies
 - **Coherence Check** - Evaluates logical flow between ideas
 - **Actionable Tips** - Personalised suggestions to improve your speech
+- **Voice Analysis** - Analyses recordings of speeches for modulation, pace, and clarity
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/Individual-Project.git
+cd Individual-Project
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install FFmpeg (required for voice analysis)
+# Windows: Download from https://ffmpeg.org/download.html and add to PATH
+# or specify the path in voice_analyzer.py
+
+# Download NLTK resources (if not downloaded automatically)
+python -c "import nltk; nltk.download('punkt')"
+```
+
+### Requirements
+
+- Python 3.8+
+- FFmpeg (for audio processing)
+- Internet connection for API services
 
 ## Quick Start
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
 # Run the application
 python main.py
 
@@ -22,9 +44,65 @@ python main.py
 # http://localhost:5000
 ```
 
+## Text Analysis
+
+The text analysis component evaluates written speeches based on:
+
+- Content relevance and depth
+- Structural coherence
+- Language quality and vocabulary usage
+- Policy suggestions and resolution alignment
+- British English phrasing and terminology
+
+### Training & Configuration
+
+The text analysis model uses transfer learning to achieve higher accuracy for MUN speech evaluation. The approach involves:
+
+1. **Base Model Training**: A transformer-based (BERT) model is pretrained on a large corpus of UN General Debates speeches to learn diplomatic language patterns
+2. **Fine-tuning**: The base model is then fine-tuned on specialized MUN speech datasets to adapt to MUN-specific characteristics
+3. **Performance Improvement**: This approach yields lower error rates and better handling of MUN-specific language compared to models trained solely on MUN data
+
+To train the model yourself:
+```bash
+python run_transfer_learning.py --un_data_path un_general_debates.csv --mun_data_path training_data.json
+```
+
+The text analysis uses pre-trained NLP models:
+
+1. Entity recognition is fine-tuned for diplomatic and international relations terminology
+2. Vocabulary assessment considers spelling and phrasing
+
+## Voice Analysis
+
+The voice analysis component evaluates speech recordings based on:
+
+- Voice modulation and pitch variation
+- Speech rate (words per minute)
+- Strategic pauses and emphasis
+- Fluency and stuttering detection
+- Clarity and pronunciation (optimised for British English)
+- Vocabulary complexity
+- Confidence markers
+- Emotional tone
+
+### Using Voice Analysis
+
+1. **Record your speech** or upload an audio file
+3. **Click "Analyse"**
+4. **Review detailed feedback** on your speaking performance
+
+### Technical Notes
+
+- The voice analyser uses the Google Speech Recognition API with 'en-GB' language settings
+- Audio files are processed using librosa and Praat for detailed acoustic analysis
+- Supported audio formats: WAV, MP3, M4A, FLAC (converted to WAV internally)
+- Speech rate optimal ranges are calibrated for British English speech patterns
+
 ## Simple Interface
 
-1. **Enter your speech** in the text area
+1. **Enter your speech** in the text area or **upload an audio recording**
 2. **Select a topic** (optional)
-3. **Click "Evaluate"**
-4. **Review your feedback**
+4. **Click "Evaluate"**
+5. **Review your feedback**
+
+

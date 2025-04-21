@@ -89,5 +89,5 @@ class FeatureExtractor:
         
         return flat_features
 
-# Create a global instance for shared access
+# Allow global access to this class
 feature_extractor = FeatureExtractor() 

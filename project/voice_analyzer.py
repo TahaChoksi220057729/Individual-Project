@@ -1,4 +1,15 @@
+# Configure FFmpeg path
 import os
+
+# Set path to your FFmpeg installation
+FFMPEG_PATH = r"C:\Users\Decay\Downloads\ffmpeg-2025-04-17-git-7684243fbe-full_build\bin"
+
+# Add FFmpeg to system PATH
+if FFMPEG_PATH not in os.environ["PATH"]:
+    os.environ["PATH"] += os.pathsep + FFMPEG_PATH
+
+print(f"FFmpeg configured at: {FFMPEG_PATH}")
+
 import numpy as np
 import librosa
 import speech_recognition as sr
@@ -11,6 +22,7 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 import textstat
 import json
 import soundfile as sf
+from pydub import AudioSegment
 
 # Download NLTK resources if needed
 try:
@@ -19,8 +31,8 @@ except LookupError:
     nltk.download('punkt', quiet=True)
 
 # Helper function to convert NumPy types to Python native types
-def convert_to_serializable(obj: Any) -> Any:
-    """Convert NumPy types to Python native types for JSON serialization."""
+def convert_to_serialisable(obj: Any) -> Any:
+    """Convert NumPy types to Python native types for JSON serialisation."""
     if isinstance(obj, np.integer):
         return int(obj)
     elif isinstance(obj, np.floating):
@@ -28,19 +40,19 @@ def convert_to_serializable(obj: Any) -> Any:
     elif isinstance(obj, np.ndarray):
         return obj.tolist()
     elif isinstance(obj, dict):
-        return {key: convert_to_serializable(value) for key, value in obj.items()}
+        return {key: convert_to_serialisable(value) for key, value in obj.items()}
     elif isinstance(obj, list):
-        return [convert_to_serializable(item) for item in obj]
+        return [convert_to_serialisable(item) for item in obj]
     else:
         return obj
 
-class VoiceAnalyzer:
+class VoiceAnalyser:
     """
-    Analyzes speech recordings for various aspects of speech quality.
+    Analyses speech recordings for various aspects of speech quality.
     """
     
     def __init__(self):
-        """Initialize the voice analyzer with necessary resources."""
+        """Initialise the voice analyser with necessary resources."""
         self.recognizer = sr.Recognizer()
         
     def process_audio_file(self, audio_file_path: str) -> Dict:
@@ -70,13 +82,15 @@ class VoiceAnalyzer:
             temp_wav_path = None
             if file_extension.lower() not in ['.wav']:
                 try:
-                    from pydub import AudioSegment
+                    # Set FFmpeg path explicitly
+                    ffmpeg_path = r"C:\Users\Decay\Downloads\ffmpeg-2025-04-17-git-7684243fbe-full_build\bin\ffmpeg"  # Change this to your actual path
+                    AudioSegment.converter = ffmpeg_path
                     
                     # Create temp file
                     temp_fd, temp_wav_path = tempfile.mkstemp(suffix='.wav')
                     os.close(temp_fd)
                     
-                    # Convert to WAV
+                    # Convert to WAV with explicit parameters
                     print(f"Converting {file_extension} to WAV format...")
                     sound = AudioSegment.from_file(audio_file_path)
                     sound.export(temp_wav_path, format="wav")
@@ -92,18 +106,18 @@ class VoiceAnalyzer:
             # Transcribe the audio
             transcript = self._transcribe_audio(audio_file_path)
             
-            # Analyze different aspects of the speech
+            # Analyse different aspects of the speech
             results = {
                 'transcript': transcript,
-                'voice_modulation': self._analyze_voice_modulation(y, sr, audio_file_path),
-                'speech_rate': self._analyze_speech_rate(y, sr, transcript),
-                'pauses': self._analyze_pauses(y, sr),
-                'stuttering': self._analyze_stuttering(transcript),
-                'clarity': self._analyze_clarity(transcript),
-                'vocabulary': self._analyze_vocabulary(transcript),
-                'confidence': self._analyze_confidence(y, sr, transcript),
-                'emotion': self._analyze_emotion(y, sr, transcript),
-                'pitch_tone': self._analyze_pitch_tone(y, sr, audio_file_path),
+                'voice_modulation': self._analyse_voice_modulation(y, sr, audio_file_path),
+                'speech_rate': self._analyse_speech_rate(y, sr, transcript),
+                'pauses': self._analyse_pauses(y, sr),
+                'stuttering': self._analyse_stuttering(transcript),
+                'clarity': self._analyse_clarity(transcript),
+                'vocabulary': self._analyse_vocabulary(transcript),
+                'confidence': self._analyse_confidence(y, sr, transcript),
+                'emotion': self._analyse_emotion(y, sr, transcript),
+                'pitch_tone': self._analyse_pitch_tone(y, sr, audio_file_path),
             }
             
             # Add overall score
@@ -114,7 +128,7 @@ class VoiceAnalyzer:
                 os.remove(temp_wav_path)
                 
             # Convert any NumPy types to Python native types
-            return convert_to_serializable(results)
+            return convert_to_serialisable(results)
             
         except Exception as e:
             print(f"Error processing audio file: {e}")
@@ -154,14 +168,12 @@ class VoiceAnalyzer:
             try:
                 # Try with a different approach - convert to wav first using pydub
                 try:
-                    from pydub import AudioSegment
-                    sound = AudioSegment.from_file(audio_file_path)
-                    
                     # Create temp file
                     temp_fd, temp_wav_path = tempfile.mkstemp(suffix='.wav')
                     os.close(temp_fd)
                     
                     # Export as WAV
+                    sound = AudioSegment.from_file(audio_file_path)
                     sound.export(temp_wav_path, format="wav")
                     
                     # Try transcribing again
@@ -179,9 +191,9 @@ class VoiceAnalyzer:
                 print(f"All transcription methods failed: {e3}")
                 return ""
     
-    def _analyze_voice_modulation(self, y: np.ndarray, sr: int, audio_file_path: str) -> Dict:
+    def _analyse_voice_modulation(self, y: np.ndarray, sr: int, audio_file_path: str) -> Dict:
         """
-        Analyze pitch variation throughout the speech.
+        Analyse pitch variation throughout the speech.
         
         Args:
             y: Audio time series
@@ -236,7 +248,7 @@ class VoiceAnalyzer:
                 'score': min(10, max(1, variation_coefficient / 10))
             }
         except Exception as e:
-            print(f"Error analyzing voice modulation: {e}")
+            print(f"Error analysing voice modulation: {e}")
             return {
                 'mean_pitch': 0,
                 'pitch_range': 0,
@@ -245,7 +257,7 @@ class VoiceAnalyzer:
                 'error': str(e)
             }
     
-    def _analyze_speech_rate(self, y: np.ndarray, sr: int, transcript: str) -> Dict:
+    def _analyse_speech_rate(self, y: np.ndarray, sr: int, transcript: str) -> Dict:
         """
         Calculate speech rate in words per minute.
         
@@ -286,7 +298,7 @@ class VoiceAnalyzer:
                 'score': score
             }
         except Exception as e:
-            print(f"Error analyzing speech rate: {e}")
+            print(f"Error analysing speech rate: {e}")
             return {
                 'words_per_minute': 0,
                 'word_count': 0,
@@ -295,7 +307,7 @@ class VoiceAnalyzer:
                 'error': str(e)
             }
     
-    def _analyze_pauses(self, y: np.ndarray, sr: int) -> Dict:
+    def _analyse_pauses(self, y: np.ndarray, sr: int) -> Dict:
         """
         Detect pauses in speech.
         
@@ -374,7 +386,7 @@ class VoiceAnalyzer:
                 'score': score
             }
         except Exception as e:
-            print(f"Error analyzing pauses: {e}")
+            print(f"Error analysing pauses: {e}")
             return {
                 'pause_count': 0,
                 'pause_frequency': 0,
@@ -384,7 +396,7 @@ class VoiceAnalyzer:
                 'error': str(e)
             }
     
-    def _analyze_stuttering(self, transcript: str) -> Dict:
+    def _analyse_stuttering(self, transcript: str) -> Dict:
         """
         Detect stuttering patterns in transcript.
         
@@ -416,17 +428,17 @@ class VoiceAnalyzer:
             stutter_score = repetition_rate + filler_rate
             
             # Convert to 1-10 scale (10 is best, i.e., no stuttering)
-            normalized_score = max(1, min(10, 10 - (stutter_score / 2)))
+            normalised_score = max(1, min(10, 10 - (stutter_score / 2)))
             
             return {
                 'repetition_count': repetitions,
                 'repetition_rate': repetition_rate,
                 'filler_count': filler_count,
                 'filler_rate': filler_rate,
-                'score': normalized_score
+                'score': normalised_score
             }
         except Exception as e:
-            print(f"Error analyzing stuttering: {e}")
+            print(f"Error analysing stuttering: {e}")
             return {
                 'repetition_count': 0,
                 'repetition_rate': 0,
@@ -436,9 +448,9 @@ class VoiceAnalyzer:
                 'error': str(e)
             }
     
-    def _analyze_clarity(self, transcript: str) -> Dict:
+    def _analyse_clarity(self, transcript: str) -> Dict:
         """
-        Analyze clarity based on transcript completeness.
+        Analyse clarity based on transcript completeness.
         
         Args:
             transcript: Transcribed text
@@ -479,7 +491,7 @@ class VoiceAnalyzer:
                 'score': score
             }
         except Exception as e:
-            print(f"Error analyzing clarity: {e}")
+            print(f"Error analysing clarity: {e}")
             return {
                 'word_count': 0,
                 'sentence_count': 0,
@@ -489,9 +501,9 @@ class VoiceAnalyzer:
                 'error': str(e)
             }
     
-    def _analyze_vocabulary(self, transcript: str) -> Dict:
+    def _analyse_vocabulary(self, transcript: str) -> Dict:
         """
-        Analyze vocabulary complexity.
+        Analyse vocabulary complexity.
         
         Args:
             transcript: Transcribed text
@@ -524,7 +536,7 @@ class VoiceAnalyzer:
                 'score': combined_score
             }
         except Exception as e:
-            print(f"Error analyzing vocabulary: {e}")
+            print(f"Error analysing vocabulary: {e}")
             return {
                 'flesch_reading_ease': 0,
                 'grade_level': 0,
@@ -535,9 +547,9 @@ class VoiceAnalyzer:
                 'error': str(e)
             }
     
-    def _analyze_confidence(self, y: np.ndarray, sr: int, transcript: str) -> Dict:
+    def _analyse_confidence(self, y: np.ndarray, sr: int, transcript: str) -> Dict:
         """
-        Analyze speaker confidence based on audio and transcript features.
+        Analyse speaker confidence based on audio and transcript features.
         
         Args:
             y: Audio time series
@@ -570,7 +582,7 @@ class VoiceAnalyzer:
                 'score': combined_score
             }
         except Exception as e:
-            print(f"Error analyzing confidence: {e}")
+            print(f"Error analysing confidence: {e}")
             return {
                 'filler_count': 0,
                 'filler_rate': 0,
@@ -579,9 +591,9 @@ class VoiceAnalyzer:
                 'error': str(e)
             }
     
-    def _analyze_emotion(self, y: np.ndarray, sr: int, transcript: str) -> Dict:
+    def _analyse_emotion(self, y: np.ndarray, sr: int, transcript: str) -> Dict:
         """
-        Analyze emotional tone in speech.
+        Analyse emotional tone in speech.
         
         Args:
             y: Audio time series
@@ -632,7 +644,7 @@ class VoiceAnalyzer:
             else:
                 emotions['uncertain'] = 0.6
             
-            # Normalize emotion scores
+            # Normalise emotion scores
             total = sum(emotions.values())
             for key in emotions:
                 emotions[key] = emotions[key] / total if total > 0 else 0
@@ -647,7 +659,7 @@ class VoiceAnalyzer:
                 'score': float(emotion_score)
             }
         except Exception as e:
-            print(f"Error analyzing emotion: {e}")
+            print(f"Error analysing emotion: {e}")
             return {
                 'energy_mean': 0,
                 'energy_variation': 0,
@@ -659,9 +671,9 @@ class VoiceAnalyzer:
                 'error': str(e)
             }
     
-    def _analyze_pitch_tone(self, y: np.ndarray, sr: int, audio_file_path: str) -> Dict:
+    def _analyse_pitch_tone(self, y: np.ndarray, sr: int, audio_file_path: str) -> Dict:
         """
-        Analyze pitch and tone characteristics.
+        Analyse pitch and tone characteristics.
         
         Args:
             y: Audio time series
@@ -733,7 +745,7 @@ class VoiceAnalyzer:
                 'score': float(combined_score)
             }
         except Exception as e:
-            print(f"Error analyzing pitch and tone: {e}")
+            print(f"Error analysing pitch and tone: {e}")
             return {
                 'mean_pitch': 0,
                 'min_pitch': 0,
@@ -778,7 +790,7 @@ class VoiceAnalyzer:
                 weighted_sum += results[factor]['score'] * weight
                 total_weight += weight
         
-        # Return normalized score
+        # Return normalised score
         return weighted_sum / total_weight if total_weight > 0 else 5.0
 
 # Create a helper function to handle file uploads
@@ -792,5 +804,5 @@ def process_audio_file(file_path: str) -> Dict:
     Returns:
         Dict: Analysis results
     """
-    analyzer = VoiceAnalyzer()
-    return analyzer.process_audio_file(file_path) 
+    analyser = VoiceAnalyser()
+    return analyser.process_audio_file(file_path) 

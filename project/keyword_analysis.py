@@ -168,5 +168,5 @@ class KeywordAnalyser:
         
         return counts
 
-# Create a global instance for shared access
+# Allow global access to this class
 keyword_analyser = KeywordAnalyser() 

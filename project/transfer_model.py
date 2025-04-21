@@ -31,12 +31,12 @@ if device.type == 'cuda' and torch.cuda.is_available():
 class TransferModel:
     """
     Transfer learning model that fine-tunes a base model trained on UN debates
-    with specialized MUN speech data.
+    with specialised MUN speech data.
     """
     
     def __init__(self, base_model_path, output_dir='models'):
         """
-        Initialize the transfer model.
+        Initialise the transfer model.
         
         Args:
             base_model_path (str): Path to the base model
@@ -52,7 +52,7 @@ class TransferModel:
         self.model = AutoModelForSequenceClassification.from_pretrained(base_model_path)
         self.model.to(device)
         
-        # Initialize data processor
+        # Initialise data processor
         self.processor = DataProcessor(max_length=512)
         
     def fine_tune(self, train_dataset, val_dataset, batch_size=4, epochs=5, 
@@ -79,53 +79,53 @@ class TransferModel:
             val_dataset, batch_size=batch_size, shuffle=False
         )
         
-        # Prepare optimizer and scheduler
+        # Prepare optimiser and scheduler
         # Using different learning rates for different layers
         # This is a common technique for fine-tuning
         # We'll use a lower learning rate for the base model's parameters
         # and a higher learning rate for the newly added classifier layers
         
         # Parameters from the base model
-        param_optimizer = list(self.model.named_parameters())
+        param_optimiser = list(self.model.named_parameters())
         no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
         
         # Different parameter groups with different learning rates
-        optimizer_grouped_parameters = [
+        optimiser_grouped_parameters = [
             # Base model params with weight decay
             {
-                'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay) 
+                'params': [p for n, p in param_optimiser if not any(nd in n for nd in no_decay) 
                           and 'classifier' not in n],
                 'weight_decay': 0.01,
                 'lr': learning_rate / 10  # Lower learning rate for base model
             },
             # Base model params without weight decay
             {
-                'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay) 
+                'params': [p for n, p in param_optimiser if any(nd in n for nd in no_decay) 
                           and 'classifier' not in n],
                 'weight_decay': 0.0,
                 'lr': learning_rate / 10  # Lower learning rate for base model
             },
             # Classifier params with weight decay
             {
-                'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay) 
+                'params': [p for n, p in param_optimiser if not any(nd in n for nd in no_decay) 
                           and 'classifier' in n],
                 'weight_decay': 0.01,
                 'lr': learning_rate  # Higher learning rate for classifier
             },
             # Classifier params without weight decay
             {
-                'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay) 
+                'params': [p for n, p in param_optimiser if any(nd in n for nd in no_decay) 
                           and 'classifier' in n],
                 'weight_decay': 0.0,
                 'lr': learning_rate  # Higher learning rate for classifier
             }
         ]
         
-        optimizer = AdamW(optimizer_grouped_parameters)
+        optimiser = AdamW(optimiser_grouped_parameters)
         
         total_steps = len(train_dataloader) * epochs
         scheduler = get_linear_schedule_with_warmup(
-            optimizer,
+            optimiser,
             num_warmup_steps=warmup_steps,
             num_training_steps=total_steps
         )
@@ -152,7 +152,7 @@ class TransferModel:
                 batch = {k: v.to(device) for k, v in batch.items()}
                 
                 # Zero gradients
-                optimizer.zero_grad()
+                optimiser.zero_grad()
                 
                 # Forward pass
                 outputs = self.model(**batch)
@@ -162,7 +162,7 @@ class TransferModel:
                 loss.backward()
                 
                 # Update weights
-                optimizer.step()
+                optimiser.step()
                 scheduler.step()
                 
                 # Update progress bar
@@ -324,7 +324,7 @@ class TransferModel:
         """
         plt.figure(figsize=(10, 6))
         
-        # Sort by ground truth for better visualization
+        # Sort by ground truth for better visualisation
         indices = np.argsort(ground_truth)
         sorted_truth = np.array(ground_truth)[indices]
         sorted_preds = np.array(predictions)[indices]
@@ -373,7 +373,7 @@ def main():
     
     args = parser.parse_args()
     
-    # Initialize processor and load data
+    # Initialise processor and load data
     processor = DataProcessor(max_length=args.max_length)
     mun_df = processor.load_mun_speeches(args.mun_data_path)
     
@@ -385,7 +385,7 @@ def main():
     val_dataset = processor.create_torch_dataset(mun_val)
     test_dataset = processor.create_torch_dataset(mun_test)
     
-    # Initialize and fine-tune model
+    # Initialise and fine-tune model
     transfer_model = TransferModel(base_model_path=args.base_model_path, 
                                   output_dir=args.output_dir)
     

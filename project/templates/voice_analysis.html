@@ -120,7 +120,7 @@
             <div class="col-md-8 offset-md-2">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Analyze Your Voice</h5>
+                        <h5 class="card-title">Analyse Your Voice</h5>
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="record-tab" data-bs-toggle="tab" data-bs-target="#record" type="button" role="tab" aria-controls="record" aria-selected="true">
@@ -146,8 +146,8 @@
                                             <button class="btn btn-outline-secondary" id="recordAgainButton">
                                                 <i class="fas fa-redo"></i> Record Again
                                             </button>
-                                            <button class="btn btn-primary" id="analyzeRecordingButton">
-                                                <i class="fas fa-chart-line"></i> Analyze
+                                            <button class="btn btn-primary" id="analyseRecordingButton">
+                                                <i class="fas fa-chart-line"></i> Analyse
                                             </button>
                                         </div>
                                     </div>
@@ -165,7 +165,7 @@
                                         <div id="fileNameDisplay" class="mt-2 text-muted"></div>
                                     </div>
                                     <button type="submit" class="btn btn-primary" id="uploadButton" disabled>
-                                        <i class="fas fa-chart-line"></i> Upload & Analyze
+                                        <i class="fas fa-chart-line"></i> Upload & Analyse
                                     </button>
                                 </form>
                             </div>
@@ -194,7 +194,7 @@
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="mt-2">Analyzing your speech...</p>
+                    <p class="mt-2">Analysing your speech...</p>
                 </div>
                 
                 <div class="result-section" id="resultSection">
@@ -313,7 +313,7 @@
             const audioControls = document.getElementById('audioControls');
             const audioPlayback = document.getElementById('audioPlayback');
             const recordAgainButton = document.getElementById('recordAgainButton');
-            const analyzeRecordingButton = document.getElementById('analyzeRecordingButton');
+            const analyseRecordingButton = document.getElementById('analyseRecordingButton');
             const fileInput = document.getElementById('audioFileInput');
             const fileNameDisplay = document.getElementById('fileNameDisplay');
             const uploadButton = document.getElementById('uploadButton');
@@ -332,7 +332,7 @@
             let isRecording = false;
             let recordingFile = null;
             
-            // Initialize audio recorder
+            // Initialise audio recorder
             audioRecorder.initialize().then(success => {
                 if (!success) {
                     Swal.fire({
@@ -406,8 +406,8 @@
                 timer.textContent = '00:00';
             }
             
-            // Analyze recording
-            function analyzeRecording() {
+            // Analyse recording
+            function analyseRecording() {
                 if (!recordingFile) {
                     Swal.fire({
                         title: 'No Recording',
@@ -570,7 +570,7 @@
                         key: 'pauses', 
                         title: 'Pauses', 
                         icon: 'fa-clock',
-                        description: 'Analyzes strategic pauses in your speech. Good pauses help emphasize key points and give the audience time to process information. 2-6 pauses per minute is ideal.'
+                        description: 'Analyses strategic pauses in your speech. Good pauses help emphasise key points and give the audience time to process information. 2-6 pauses per minute is ideal.'
                     },
                     { 
                         key: 'stuttering', 
@@ -588,7 +588,7 @@
                         key: 'vocabulary', 
                         title: 'Vocabulary', 
                         icon: 'fa-book',
-                        description: 'Analyzes lexical diversity (unique words) and language complexity. Higher scores reflect more sophisticated language use appropriate for Model UN.'
+                        description: 'Analyses lexical diversity (unique words) and language complexity. Higher scores reflect more sophisticated language use appropriate for Model UN.'
                     },
                     { 
                         key: 'confidence', 
@@ -697,7 +697,7 @@
             // Event listeners
             recordButton.addEventListener('click', toggleRecording);
             recordAgainButton.addEventListener('click', resetRecording);
-            analyzeRecordingButton.addEventListener('click', analyzeRecording);
+            analyseRecordingButton.addEventListener('click', analyseRecording);
         });
     </script>
 </body>

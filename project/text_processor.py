@@ -245,5 +245,5 @@ class TextProcessor:
             "weak_transitions": weak_transitions
         }
 
-# Create a global instance for shared access
+# Allow global access to this class
 text_processor = TextProcessor() 
