@@ -80,7 +80,7 @@ The voice analysis component evaluates speech recordings based on:
 - Speech rate (words per minute)
 - Strategic pauses and emphasis
 - Fluency and stuttering detection
-- Clarity and pronunciation (optimised for British English)
+- Clarity and pronunciation
 - Vocabulary complexity
 - Confidence markers
 - Emotional tone
@@ -93,7 +93,7 @@ The voice analysis component evaluates speech recordings based on:
 
 ### Technical Notes
 
-- The voice analyser uses the Google Speech Recognition API with 'en-GB' language settings
+- The voice analyser uses the Google Speech Recognition API
 - Audio files are processed using librosa and Praat for detailed acoustic analysis
 - Supported audio formats: WAV, MP3, M4A, FLAC (converted to WAV internally)
 - Speech rate optimal ranges are calibrated for British English speech patterns
