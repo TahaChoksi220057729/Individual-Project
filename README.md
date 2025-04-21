@@ -120,7 +120,7 @@ The text analysis component evaluates written speeches based on:
 3. **Click "Analyse"**
 4. **Review detailed feedback** on your speech 
 
-### Training & Configuration
+## Training & Configuration
 
 The text analysis model uses transfer learning to achieve higher accuracy for MUN speech evaluation. The approach involves:
 
