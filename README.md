@@ -10,6 +10,39 @@ Final project for BSc Computer Science - AI analysis of MUN delegate speeches
 - **Actionable Tips** - Personalised suggestions to improve your speech
 - **Voice Analysis** - Analyses recordings of speeches for modulation, pace, and clarity
 
+## Project Structure
+
+```
+Individual-Project/
+├── project/                  # Main application directory
+│   ├── main.py               # Application entry point
+│   ├── templates/            # Web interface templates
+│   │   ├── index.html        # Main page for text analysis
+│   │   └── voice_analysis.html # Voice analysis interface
+│   ├── static/               # Static assets for web interface
+│   │   ├── css/              # Stylesheets
+│   │   └── js/               # JavaScript files
+│   ├── uploads/              # Directory for uploaded audio files
+│   ├── output/               # Analysis output files
+│   ├── voice_analyzer.py     # Voice analysis functionality
+│   ├── text_processor.py     # Text processing functionality
+│   ├── speech_evaluator.py   # Main speech evaluation logic
+│   ├── evaluation.py         # Evaluation metrics and scoring
+│   ├── feedback_generation.py # Feedback creation functionality
+│   ├── feature_extraction.py # Extract features from text/audio
+│   ├── keyword_analysis.py   # Keyword and entity recognition
+│   ├── data_processor.py     # Data preprocessing utilities
+│   ├── base_model.py         # Base model definition
+│   ├── transfer_model.py     # Transfer learning implementation
+│   ├── run_transfer_learning.py # Script to run transfer learning
+│   ├── evaluate_model.py     # Model evaluation utilities
+│   ├── mun_speech_evaluator.joblib # Pre-trained model
+│   ├── training_data.json    # Training data for MUN speeches
+│   ├── un_general_debates.csv # UN General Debates dataset
+│   └── requirements.txt      # Project dependencies
+└── README.md                 # Project documentation
+```
+
 ## Installation
 
 ```bash
@@ -17,17 +50,41 @@ Final project for BSc Computer Science - AI analysis of MUN delegate speeches
 git clone https://github.com/yourusername/Individual-Project.git
 cd Individual-Project
 
+# Create and activate a virtual environment (recommended)
+# Windows
+python -m venv .venv
+.venv\Scripts\activate
+
+#Linux
+source .venv/bin/activate
+
 # Install dependencies
+cd project
 pip install -r requirements.txt
 
-# if the pip install -r requirements.txt may not work due to dependency conflicts install each individually, It  is confirmed that this project works with the versions in my requirements.txt
+# If pip install fails due to dependency conflicts, install packages individually
+# The following versions are confirmed to work:
+pip install torch>=1.9.0 transformers>=4.12.0 numpy>=1.20.0 pandas>=1.3.0
+pip install scikit-learn>=0.24.0 tqdm>=4.62.0 matplotlib>=3.4.0 nltk>=3.6.0
+pip install flask==2.3.3 joblib==1.3.2 spacy==3.6.1 tabulate==0.9.0
+pip install librosa>=0.10.0 SpeechRecognition>=3.10.0 pydub>=0.25.1
+pip install textstat>=0.7.3 ffmpeg-python>=0.2.0 soundfile>=0.12.1
+pip install praat-parselmouth>=0.4.3
 
 # Install FFmpeg (required for voice analysis)
-# Windows: Download from https://ffmpeg.org/download.html and add to PATH
-# or specify the path in voice_analyzer.py
+# Windows: 
+# 1. Download from https://ffmpeg.org/download.html
+# 2. Extract the downloaded archive
+# 3. Add the bin folder to your system PATH or specify the path in voice_analyzer.py
+
+# Linux:
+# sudo apt update && sudo apt install ffmpeg
 
 # Download NLTK resources (if not downloaded automatically)
-python -c "import nltk; nltk.download('punkt')"
+python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')"
+
+# Download spaCy model
+python -m spacy download en_core_web_sm
 ```
 
 ### Requirements
@@ -39,10 +96,11 @@ python -c "import nltk; nltk.download('punkt')"
 ## Quick Start
 
 ```bash
-# Run the application -- Ensure that you are in the correct folder i.e ./INDIVIDUAL-PROJECT/project
+# Run the application -- Ensure that you are in the project directory
+cd project
 python main.py
 
-# Access in your browser - I have not been able to host this project due to time constraints, thus LocalHost is my solution. 
+# Access in your browser
 # http://localhost:5000
 ```
 
@@ -54,7 +112,13 @@ The text analysis component evaluates written speeches based on:
 - Structural coherence
 - Language quality and vocabulary usage
 - Policy suggestions and resolution alignment
-- British English phrasing and terminology
+
+### Using Text Analysis
+
+1. **Type your speech** or copy and paste into the text box
+2. **Select a topic** (optional)
+3. **Click "Analyse"**
+4. **Review detailed feedback** on your speech 
 
 ### Training & Configuration
 
@@ -93,20 +157,6 @@ The voice analysis component evaluates speech recordings based on:
 2. **Click "Analyse"**
 3. **Review detailed feedback** on your speaking performance
 
-### Using Text Analysis
-
-1. **Type your speech** or copy and paste into the text box
-2. **Select a topic** (optional)
-3. **Click "Analyse"**
-4. **Review detailed feedback** on your speech 
-
-### Technical Notes
-
-- The voice analyser uses the Google Speech Recognition API
-- Audio files are processed using librosa and Praat for detailed acoustic analysis
-- Supported audio formats: WAV, MP3, M4A, FLAC (converted to WAV internally)
-- Speech rate optimal ranges are calibrated for British English speech patterns
-
 ## Simple Interface
 
 1. **Enter your speech** in the text area or **upload an audio recording**
@@ -115,3 +165,8 @@ The voice analysis component evaluates speech recordings based on:
 5. **Review your feedback**
 
 
+### Technical Notes
+
+- The voice analyser uses the Google Speech Recognition API
+- Audio files are processed using librosa and Praat for detailed acoustic analysis
+- Supported audio formats: WAV, MP3, M4A, FLAC (converted to WAV internally)
