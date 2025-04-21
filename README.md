@@ -20,6 +20,8 @@ cd Individual-Project
 # Install dependencies
 pip install -r requirements.txt
 
+# if the pip install -r requirements.txt may not work due to dependency conflicts install each individually, It  is confirmed that this project works with the versions in my requirements.txt
+
 # Install FFmpeg (required for voice analysis)
 # Windows: Download from https://ffmpeg.org/download.html and add to PATH
 # or specify the path in voice_analyzer.py
@@ -37,10 +39,10 @@ python -c "import nltk; nltk.download('punkt')"
 ## Quick Start
 
 ```bash
-# Run the application
+# Run the application -- Ensure that you are in the correct folder i.e ./INDIVIDUAL-PROJECT/project
 python main.py
 
-# Access in your browser
+# Access in your browser - I have not been able to host this project due to time constraints, thus LocalHost is my solution. 
 # http://localhost:5000
 ```
 
@@ -80,7 +82,7 @@ The voice analysis component evaluates speech recordings based on:
 - Speech rate (words per minute)
 - Strategic pauses and emphasis
 - Fluency and stuttering detection
-- Clarity and pronunciation (optimised for British English)
+- Clarity and pronunciation
 - Vocabulary complexity
 - Confidence markers
 - Emotional tone
@@ -88,8 +90,15 @@ The voice analysis component evaluates speech recordings based on:
 ### Using Voice Analysis
 
 1. **Record your speech** or upload an audio file
+2. **Click "Analyse"**
+3. **Review detailed feedback** on your speaking performance
+
+### Using Text Analysis
+
+1. **Type your speech** or copy and paste into the text box
+2. **Select a topic** (optional)
 3. **Click "Analyse"**
-4. **Review detailed feedback** on your speaking performance
+4. **Review detailed feedback** on your speech 
 
 ### Technical Notes
 
