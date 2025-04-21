@@ -1,10 +1,7 @@
-"http://192.168.1.184:5000 --> Not on Local Machine"
-"http://127.0.0.1:5000 --> On Local Machine"
-
 import os
 import json
 import warnings
-
+from sys import argv
 # Suppress warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -22,6 +19,9 @@ from voice_analyser import process_audio_file
 import tempfile
 import uuid
 import werkzeug.utils
+
+import nltk
+nltk.download('punkt_tab')
 
 # Initialise speech evaluator
 speech_evaluator = SpeechEvaluator()
@@ -221,10 +221,8 @@ def upload_audio():
         # Save the file
         audio_file.save(filepath)
         print(f"Saved audio file to: {filepath}")
-        
         # Process the audio file
-        voice_results = process_audio_file(filepath)
-        
+        voice_results = process_audio_file(filepath, argv[1])
         # Check if there was an error
         if 'error' in voice_results:
             print(f"Error processing audio: {voice_results['error']}")
