@@ -24,7 +24,7 @@ Individual-Project/
 │   │   └── js/               # JavaScript files
 │   ├── uploads/              # Directory for uploaded audio files
 │   ├── output/               # Analysis output files
-│   ├── voice_analyzer.py     # Voice analysis functionality
+│   ├── voice_analyser.py     # Voice analysis functionality
 │   ├── text_processor.py     # Text processing functionality
 │   ├── speech_evaluator.py   # Main speech evaluation logic
 │   ├── evaluation.py         # Evaluation metrics and scoring
