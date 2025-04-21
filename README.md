@@ -16,6 +16,9 @@
 git clone https://github.com/yourusername/Individual-Project.git
 cd Individual-Project
 
+# If you are using github to access the project you will need to download the dataset from: https://www.kaggle.com/datasets/unitednations/un-general-debates
+# If you are using github to access the project you will need to train the model first, as model files are too large to commit to GitHub.
+
 # Install FFmpeg (required for voice analysis)
 # Windows: 
 # 1. Download from https://www.gyan.dev/ffmpeg/builds/
