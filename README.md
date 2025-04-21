@@ -102,7 +102,7 @@ The voice analysis component evaluates speech recordings based on:
 
 ### Technical Notes
 
-- The voice analyser uses the Google Speech Recognition API with 'en-GB' language settings
+- The voice analyser uses the Google Speech Recognition API
 - Audio files are processed using librosa and Praat for detailed acoustic analysis
 - Supported audio formats: WAV, MP3, M4A, FLAC (converted to WAV internally)
 - Speech rate optimal ranges are calibrated for British English speech patterns
