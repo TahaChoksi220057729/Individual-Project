@@ -1,14 +1,115 @@
-## Individual-Project
-Final project for BSc Computer Science - AI analysis of MUN delegate speeches
+# MUN Speech Analyzer
 
 ## Features
 
 - **Instant Scoring** - Get a quality score from 1-10 for your speech
 - **Smart Analysis** - Detailed breakdown of content, structure, and language
-- **Entity Recognition** - Identifies countries, organisations, and policies
+- **Entity Recognition** - Identifies countries, organizations, and policies
 - **Coherence Check** - Evaluates logical flow between ideas
-- **Actionable Tips** - Personalised suggestions to improve your speech
-- **Voice Analysis** - Analyses recordings of speeches for modulation, pace, and clarity
+- **Actionable Tips** - Personalized suggestions to improve your speech
+- **Voice Analysis** - Analyzes recordings of speeches for modulation, pace, and clarity
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/Individual-Project.git
+cd Individual-Project
+
+# If you are using github to access the project you will need to download the dataset from: https://www.kaggle.com/datasets/unitednations/un-general-debates
+# If you are using github to access the project you will need to train the model first, as model files are too large to commit to GitHub.
+
+# Install FFmpeg (required for voice analysis)
+# Windows: 
+# 1. Download from https://www.gyan.dev/ffmpeg/builds/
+# 2. Download the ffmpeg-git-full.7z version
+# 3. Extract the downloaded archive
+# 4. Add the bin folder to your system PATH
+
+# Linux:
+sudo apt update && sudo apt install ffmpeg
+
+# Run the setup script
+python setup.py
+```
+
+## Quick Start
+
+```bash
+# Ensure you are in the project directory
+cd project
+python main.py
+
+# Access the web interface in your browser
+# http://localhost:5000
+```
+
+## Usage Guide
+
+### Text Analysis
+
+The text analysis component evaluates written speeches based on:
+
+- Content relevance and depth
+- Structural coherence
+- Language quality and vocabulary usage
+- Policy suggestions and resolution alignment
+
+#### Using Text Analysis
+
+1. **Type your speech** or copy and paste into the text box
+2. **Select a topic** (optional)
+3. **Click "Analyze"**
+4. **Review detailed feedback** on your speech
+
+### Voice Analysis
+
+The voice analysis component evaluates speech recordings based on:
+
+- Voice modulation and pitch variation
+- Speech rate (words per minute)
+- Strategic pauses and emphasis
+- Fluency and stuttering detection
+- Clarity and pronunciation
+- Vocabulary complexity
+- Confidence markers
+- Emotional tone
+
+#### Using Voice Analysis
+
+1. **Record your speech** or upload an audio file
+2. **Click "Analyze"**
+3. **Review detailed feedback** on your speaking performance
+
+
+## Technical Details
+
+### Architecture
+
+The application uses a combination of natural language processing and audio analysis techniques:
+
+- **NLP Pipeline**: Transformer-based models analyze speech content, structure, and language
+- **Audio Processing**: Advanced audio analysis tools evaluate vocal delivery and presentation
+- **Web Interface**: Flask-based web application for easy access to analysis tools
+
+### Training & Configuration
+
+The text analysis model uses transfer learning to achieve higher accuracy for MUN speech evaluation:
+
+1. **Base Model Training**: A transformer-based (BERT) model is pretrained on a large corpus of UN General Debates speeches to learn diplomatic language patterns
+2. **Fine-tuning**: The base model is then fine-tuned on specialized MUN speech datasets to adapt to MUN-specific characteristics
+3. **Performance Improvement**: This approach yields lower error rates and better handling of MUN-specific language compared to models trained solely on MUN data
+
+To train the model yourself:
+```bash
+python run_transfer_learning.py --un_data_path un_general_debates.csv --mun_data_path training_data.json
+```
+
+### Supported Audio Formats
+
+- WAV
+- MP3
+- M4A
 
 ## Project Structure
 
@@ -43,130 +144,16 @@ Individual-Project/
 └── README.md                 # Project documentation
 ```
 
-## Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/Individual-Project.git
-cd Individual-Project
-
-# Create and activate a virtual environment (recommended)
-# Windows
-python -m venv .venv
-.venv\Scripts\activate
-
-#Linux
-source .venv/bin/activate
-
-# Install dependencies
-cd project
-pip install -r requirements.txt
-
-# If pip install fails due to dependency conflicts, install packages individually
-# The following versions are confirmed to work:
-pip install torch>=1.9.0 transformers>=4.12.0 numpy>=1.20.0 pandas>=1.3.0
-pip install scikit-learn>=0.24.0 tqdm>=4.62.0 matplotlib>=3.4.0 nltk>=3.6.0
-pip install flask==2.3.3 joblib==1.3.2 spacy==3.6.1 tabulate==0.9.0
-pip install librosa>=0.10.0 SpeechRecognition>=3.10.0 pydub>=0.25.1
-pip install textstat>=0.7.3 ffmpeg-python>=0.2.0 soundfile>=0.12.1
-pip install praat-parselmouth>=0.4.3
-
-# Install FFmpeg (required for voice analysis)
-# Windows: 
-# 1. Download from https://ffmpeg.org/download.html
-# 2. Extract the downloaded archive
-# 3. Add the bin folder to your system PATH or specify the path in voice_analyzer.py
-
-# Linux:
-# sudo apt update && sudo apt install ffmpeg
-
-# Download NLTK resources (if not downloaded automatically)
-python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')"
-
-# Download spaCy model
-python -m spacy download en_core_web_sm
-```
-
-### Requirements
+## Requirements
 
 - Python 3.8+
 - FFmpeg (for audio processing)
-- Internet connection for API services
+- Internet connection for API services (Google Speech Recognition)
+- Libraries: (see requirements.txt for full list)
+  - Flask
+  - TensorFlow/PyTorch
+  - librosa
+  - transformers
+  - numpy
+  - pandas
 
-## Quick Start
-
-```bash
-# Run the application -- Ensure that you are in the project directory
-cd project
-python main.py
-
-# Access in your browser
-# http://localhost:5000
-```
-
-## Text Analysis
-
-The text analysis component evaluates written speeches based on:
-
-- Content relevance and depth
-- Structural coherence
-- Language quality and vocabulary usage
-- Policy suggestions and resolution alignment
-
-### Using Text Analysis
-
-1. **Type your speech** or copy and paste into the text box
-2. **Select a topic** (optional)
-3. **Click "Analyse"**
-4. **Review detailed feedback** on your speech 
-
-## Training & Configuration
-
-The text analysis model uses transfer learning to achieve higher accuracy for MUN speech evaluation. The approach involves:
-
-1. **Base Model Training**: A transformer-based (BERT) model is pretrained on a large corpus of UN General Debates speeches to learn diplomatic language patterns
-2. **Fine-tuning**: The base model is then fine-tuned on specialized MUN speech datasets to adapt to MUN-specific characteristics
-3. **Performance Improvement**: This approach yields lower error rates and better handling of MUN-specific language compared to models trained solely on MUN data
-
-To train the model yourself:
-```bash
-python run_transfer_learning.py --un_data_path un_general_debates.csv --mun_data_path training_data.json
-```
-
-The text analysis uses pre-trained NLP models:
-
-1. Entity recognition is fine-tuned for diplomatic and international relations terminology
-2. Vocabulary assessment considers spelling and phrasing
-
-## Voice Analysis
-
-The voice analysis component evaluates speech recordings based on:
-
-- Voice modulation and pitch variation
-- Speech rate (words per minute)
-- Strategic pauses and emphasis
-- Fluency and stuttering detection
-- Clarity and pronunciation
-- Vocabulary complexity
-- Confidence markers
-- Emotional tone
-
-### Using Voice Analysis
-
-1. **Record your speech** or upload an audio file
-2. **Click "Analyse"**
-3. **Review detailed feedback** on your speaking performance
-
-## Simple Interface
-
-1. **Enter your speech** in the text area or **upload an audio recording**
-2. **Select a topic** (optional)
-4. **Click "Evaluate"**
-5. **Review your feedback**
-
-
-### Technical Notes
-
-- The voice analyser uses the Google Speech Recognition API
-- Audio files are processed using librosa and Praat for detailed acoustic analysis
-- Supported audio formats: WAV, MP3, M4A, FLAC (converted to WAV internally)

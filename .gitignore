@@ -7,4 +7,3 @@ project/.webenv/*
 *.safetensors
 project/uploads/*
 *.deb
-TRAINING.md

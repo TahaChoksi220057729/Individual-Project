@@ -5,10 +5,10 @@ import os
 FFMPEG_PATH = r"C:\Users\Decay\Downloads\ffmpeg-2025-04-17-git-7684243fbe-full_build\bin"
 
 # Add FFmpeg to system PATH
-if FFMPEG_PATH not in os.environ["PATH"]:
+if FFMPEG_PATH and FFMPEG_PATH not in os.environ["PATH"]:
     os.environ["PATH"] += os.pathsep + FFMPEG_PATH
 
-print(f"FFmpeg configured at: {FFMPEG_PATH}")
+print(f"FFmpeg configured at: {FFMPEG_PATH if FFMPEG_PATH else 'System PATH'}")
 
 import numpy as np
 import librosa
@@ -82,9 +82,7 @@ class VoiceAnalyser:
             temp_wav_path = None
             if file_extension.lower() not in ['.wav']:
                 try:
-                    # Set FFmpeg path explicitly
-                    ffmpeg_path = r"C:\Users\Decay\Downloads\ffmpeg-2025-04-17-git-7684243fbe-full_build\bin\ffmpeg"  # Change this to your actual path
-                    AudioSegment.converter = ffmpeg_path
+                    AudioSegment.converter = FFMPEG_PATH
                     
                     # Create temp file
                     temp_fd, temp_wav_path = tempfile.mkstemp(suffix='.wav')
